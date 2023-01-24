@@ -3,12 +3,14 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\MasterSettingsController;
 
 
 Route::post('/auth/register', [AuthController::class, 'registerUser']);
 Route::post('/auth/login', [AuthController::class, 'loginUser']);
+Route::post('/auth/login-via-code', [AuthController::class, 'loginViaCode']);
+
 // Route::get('country-list', [MasterSettingsController::class, 'countryList']);
 
 Route::middleware('auth:sanctum')->group( function () {

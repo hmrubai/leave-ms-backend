@@ -19,6 +19,7 @@ class User extends Authenticatable
         'contact_no',
         'address',
         'institution',
+        'employee_code',
         'education',
         'image',
         'country_id',

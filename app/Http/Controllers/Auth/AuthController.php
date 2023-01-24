@@ -1,7 +1,5 @@
 <?php
-
-namespace App\Http\Controllers\Api;
-
+namespace App\Http\Controllers\Auth;
 
 use Exception;
 use App\Models\User;
@@ -19,6 +17,7 @@ class AuthController extends Controller
             $validateUser = Validator::make($request->all(), 
             [
                 'name' => 'required',
+                'employee_code' => 'required',
                 'email' => 'required|email|unique:users,email',
                 'password' => 'required'
             ]);
@@ -120,6 +119,72 @@ class AuthController extends Controller
             $response_user = [
                 'id' => $user->id,
                 'name' => $user->name,
+                'employee_code' => $user->employee_code,
+                'email' => $user->email,
+                'user_type' => $user->user_type,
+                'image' => $user->image,
+                'address' => $user->address,
+                'institution' => $user->institution,
+                'education' => $user->education,
+                'contact_no' => $user->contact_no,
+                'updated_at' => $user->updated_at,
+                'token' => $user->createToken("API TOKEN")->plainTextToken
+            ];
+
+            return response()->json([
+                'status' => true,
+                'message' => 'User Logged In Successfully',
+                'data' => $response_user
+            ], 200);
+
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status' => false,
+                'message' => $th->getMessage(),
+                'data' => []
+            ], 500);
+        }
+    }
+
+    public function loginViaCode(Request $request)
+    {
+        try {
+            $validateUser = Validator::make($request->all(), 
+            [
+                'employee_code' => 'required',
+                'password' => 'required'
+            ]);
+
+            if($validateUser->fails()){
+                return response()->json([
+                    'status' => false,
+                    'message' => 'validation error',
+                    'data' => $validateUser->errors()
+                ], 401);
+            }
+
+            if(!Auth::attempt($request->only(['employee_code', 'password']))){
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Employee Code & Password does not match with our record.',
+                    'data' => []
+                ], 401);
+            }
+
+            $user = User::where('employee_code', $request->employee_code)->first();
+
+            if(!$user->is_active){
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Your account has been suspended. Please, contact to Administrator!',
+                    'data' => []
+                ], 401);
+            }
+
+            $response_user = [
+                'id' => $user->id,
+                'name' => $user->name,
+                'employee_code' => $user->employee_code,
                 'email' => $user->email,
                 'user_type' => $user->user_type,
                 'image' => $user->image,
