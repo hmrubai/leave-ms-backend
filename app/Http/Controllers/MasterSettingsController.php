@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Exception;
 use App\Models\User;
-// use App\Models\Grade;
+use App\Models\Designation;
 // use App\Models\Country;
 // use App\Models\Category;
 // use App\Models\PackageType;
@@ -14,11 +14,113 @@ use App\Models\User;
 // use App\Models\Payment;
 // use App\Models\PaymentDetail;
 // use App\Models\TopicConsume;
+use Illuminate\Support\Facades\Validator;
 
 use Illuminate\Http\Request;
 
 class MasterSettingsController extends Controller
 {
+
+    public function saveOrUpdateDesignation (Request $request)
+    {
+        try {
+            if($request->id){
+                $validateUser = Validator::make($request->all(), 
+                [
+                    'title' => 'required',
+                    'company_id' => 'required',
+                    'branch_id' => 'required'
+                ]);
+
+                if($validateUser->fails()){
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'validation error',
+                        'data' => $validateUser->errors()
+                    ], 401);
+                }
+
+                Designation::where('id', $request->id)->update($request->all());
+                return response()->json([
+                    'status' => true,
+                    'message' => 'Designation has been updated successfully',
+                    'data' => []
+                ], 200);
+
+            } else {
+                $isExist = Designation::where('title', $request->title)->where('company_id', $request->company_id)->where('branch_id', $request->branch_id)->first();
+                if (empty($isExist)) 
+                {
+                    $validateUser = Validator::make($request->all(), 
+                    [
+                        'title' => 'required',
+                        'company_id' => 'required',
+                        'branch_id' => 'required'
+                    ]);
+
+                    if($validateUser->fails()){
+                        return response()->json([
+                            'status' => false,
+                            'message' => 'validation error',
+                            'data' => $validateUser->errors()
+                        ], 401);
+                    }
+
+                    Designation::create($request->all());
+                    return response()->json([
+                        'status' => true,
+                        'message' => 'Designation has been created successfully',
+                        'data' => []
+                    ], 200);
+                }else{
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'Designation already Exist!',
+                        'data' => []
+                    ], 200);
+                }
+            }
+
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage(),
+                'data' => []
+            ], 200);
+        }
+    }
+
+    public function designationList (Request $request)
+    {
+        $designation_list = Designation::where("is_active", true)->where("is_active", true)->orderBy('title', 'ASC')->get();
+        return response()->json([
+            'status' => true,
+            'message' => 'Successful',
+            'data' => $designation_list
+        ], 200);
+    }
+
+    public function designationListByID (Request $request)
+    {
+        $company_id = $request->company_id;
+        $branch_id = $request->branch_id;
+
+        if(!$company_id || !$branch_id){
+            return response()->json([
+                'status' => false,
+                'message' => 'Please, attach Company ID Or Branch ID',
+                'data' => []
+            ], 200);
+        }
+
+        $designation_list = Designation::where('company_id', $company_id)->where('branch_id', $branch_id)->where("is_active", true)->orderBy('title', 'ASC')->get();
+        return response()->json([
+            'status' => true,
+            'message' => 'Successful',
+            'data' => $designation_list
+        ], 200);
+    }
+
     // public function trancateData(Request $request)
     // {
     //     Correction::truncate();
