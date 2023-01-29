@@ -5,6 +5,8 @@ use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\LocationController;
+use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\LeavePolicyController;
 use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\MasterSettingsController;
 
@@ -31,9 +33,22 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::get('branch-list', [OrganizationController::class, 'branchList']);
     Route::get('branch-list-by-company-id/{company_id}', [OrganizationController::class, 'branchListByCompanyID']);
 
+    //Designation
     Route::post('designation-save-or-update', [MasterSettingsController::class, 'saveOrUpdateDesignation']);
     Route::get('designation-list', [MasterSettingsController::class, 'designationList']);
     Route::get('designation-list-by-id/{company_id}/{branch_id}', [MasterSettingsController::class, 'designationListByID']);
+
+    //Department
+    Route::post('department-save-or-update', [OrganizationController::class, 'saveOrUpdateDepartment']);
+    Route::get('department-list', [OrganizationController::class, 'departmentList']);
+    Route::get('department-list-by-id/{company_id}/{branch_id}', [OrganizationController::class, 'departmentListByID']);
+
+    //Employee 
+    Route::post('add-employee', [EmployeeController::class, 'saveEmployee']);
+    Route::post('update-employee', [EmployeeController::class, 'updateEmployee']);
+
+    //Leave Policy
+    Route::post('leave-policy-save-or-update', [LeavePolicyController::class, 'saveOrUpdateLeavePolicy']);
 
     Route::get('get-profile', [AuthController::class, 'getProfile']);
     Route::post('profile-update', [AuthController::class, 'updateUser']);
