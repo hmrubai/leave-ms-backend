@@ -48,10 +48,15 @@ class OrganizationController extends Controller
                     "leave_email" => $request->leave_email,
                     "employee_code_length" => $request->employee_code_length,
                     "company_prefix" => $request->company_prefix,
-                    "is_active" => $request->is_active
+                    //"is_active" => $request->is_active
                 ]);
 
                 if($request->hasFile('file')){
+                    $existing_company = Company::where('id', $request->id)->first();
+                    if($existing_company->company_logo){
+                        unlink($existing_company->company_logo);
+                    }
+                    
                     Company::where('id', $request->id)->update([
                         'company_logo' => $company_logo
                     ]);
@@ -60,7 +65,7 @@ class OrganizationController extends Controller
                 return response()->json([
                     'status' => true,
                     'message' => 'Company has been updated successfully',
-                    'data' => []
+                    'data' => [$request->is_active]
                 ], 200);
 
             } else {
