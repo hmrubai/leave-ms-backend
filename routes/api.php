@@ -47,6 +47,10 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::post('add-employee', [EmployeeController::class, 'saveEmployee']);
     Route::post('update-employee', [EmployeeController::class, 'updateEmployee']);
 
+    //saveOrUpdateFiscalYear
+    Route::post('fiscal-year-save-or-update', [MasterSettingsController::class, 'saveOrUpdateFiscalYear']);
+    Route::get('fiscal-year-list-by-id/{company_id}', [MasterSettingsController::class, 'fiscalYearListByID']);
+    
     //Leave Policy
     Route::post('leave-policy-save-or-update', [LeavePolicyController::class, 'saveOrUpdateLeavePolicy']);
 
