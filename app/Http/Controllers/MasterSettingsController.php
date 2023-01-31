@@ -84,7 +84,16 @@ class MasterSettingsController extends Controller
 
     public function designationList (Request $request)
     {
-        $designation_list = Designation::where("is_active", true)->where("is_active", true)->orderBy('title', 'ASC')->get();
+        $designation_list = Designation::select(
+            'designations.*',
+            'companies.name as company_name',
+            'branches.name as branch_name'
+        )
+        ->leftJoin('companies', 'companies.id', 'designations.company_id')
+        ->leftJoin('branches', 'branches.id', 'designations.branch_id')
+        ->orderBy('designations.title', 'ASC')
+        ->get();
+
         return response()->json([
             'status' => true,
             'message' => 'Successful',
@@ -105,7 +114,20 @@ class MasterSettingsController extends Controller
             ], 200);
         }
 
-        $designation_list = Designation::where('company_id', $company_id)->where('branch_id', $branch_id)->where("is_active", true)->orderBy('title', 'ASC')->get();
+        $designation_list = Designation::select(
+                'designations.*',
+                'companies.name as company_name',
+                'branches.name as branch_name'
+            )
+        ->when($company_id, function ($query) use ($company_id){
+            return $query->where('designations.company_id', $company_id);
+        })
+        ->when($branch_id, function ($query) use ($branch_id){
+            return $query->where('designations.branch_id', $branch_id);
+        })
+        ->orderBy('designations.title', 'ASC')
+        ->get();
+
         return response()->json([
             'status' => true,
             'message' => 'Successful',

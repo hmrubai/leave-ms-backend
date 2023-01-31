@@ -34,9 +34,9 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::get('admin/branch-list-by-company-id/{company_id}', [OrganizationController::class, 'branchListByCompanyID']);
 
     //Designation
-    Route::post('designation-save-or-update', [MasterSettingsController::class, 'saveOrUpdateDesignation']);
-    Route::get('designation-list', [MasterSettingsController::class, 'designationList']);
-    Route::get('designation-list-by-id/{company_id}/{branch_id}', [MasterSettingsController::class, 'designationListByID']);
+    Route::post('admin/designation-save-or-update', [MasterSettingsController::class, 'saveOrUpdateDesignation']);
+    Route::get('admin/designation-list', [MasterSettingsController::class, 'designationList']);
+    Route::get('admin/designation-list-by-id/{company_id}/{branch_id}', [MasterSettingsController::class, 'designationListByID']);
 
     //Department
     Route::post('admin/department-save-or-update', [OrganizationController::class, 'saveOrUpdateDepartment']);
