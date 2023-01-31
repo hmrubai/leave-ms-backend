@@ -139,7 +139,7 @@ class OrganizationController extends Controller
 
     public function companyList (Request $request)
     {
-        $company_list = Company::where("is_active", true)->get();
+        $company_list = Company::orderBy('name', 'ASC')->get();
         return response()->json([
             'status' => true,
             'message' => 'Successful',
@@ -261,7 +261,6 @@ class OrganizationController extends Controller
                 'branches.created_at',
                 'companies.name as company_name'
             )
-        ->where("branches.is_active", true)
         ->leftJoin('companies', 'companies.id', 'branches.company_id')
         ->orderBy('branches.name', 'ASC')
         ->get();
@@ -275,7 +274,7 @@ class OrganizationController extends Controller
 
     public function branchListByCompanyID (Request $request)
     {
-        $branch_list = Branch::where('company_id', $request->company_id)->where("is_active", true)->get();
+        $branch_list = Branch::where('company_id', $request->company_id)->get();
         return response()->json([
             'status' => true,
             'message' => 'Successful',
@@ -354,7 +353,16 @@ class OrganizationController extends Controller
 
     public function departmentList (Request $request)
     {
-        $department_list = Department::where("is_active", true)->where("is_active", true)->orderBy('name', 'ASC')->get();
+        $department_list = Department::select(
+            'departments.*',
+            'companies.name as company_name',
+            'branches.name as branch_name'
+        )
+        ->leftJoin('companies', 'companies.id', 'departments.company_id')
+        ->leftJoin('branches', 'branches.id', 'departments.branch_id')
+        ->orderBy('departments.name', 'ASC')
+        ->get();
+
         return response()->json([
             'status' => true,
             'message' => 'Successful',

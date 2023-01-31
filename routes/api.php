@@ -26,12 +26,12 @@ Route::middleware('auth:sanctum')->group( function () {
         return $request->user();
     });
 
-    Route::post('company-save-or-update', [OrganizationController::class, 'saveOrUpdateCompany']);
-    Route::get('company-list', [OrganizationController::class, 'companyList']);
+    Route::post('admin/company-save-or-update', [OrganizationController::class, 'saveOrUpdateCompany']);
+    Route::get('admin/company-list', [OrganizationController::class, 'companyList']);
 
-    Route::post('branch-save-or-update', [OrganizationController::class, 'saveOrUpdateBranch']);
-    Route::get('branch-list', [OrganizationController::class, 'branchList']);
-    Route::get('branch-list-by-company-id/{company_id}', [OrganizationController::class, 'branchListByCompanyID']);
+    Route::post('admin/branch-save-or-update', [OrganizationController::class, 'saveOrUpdateBranch']);
+    Route::get('admin/branch-list', [OrganizationController::class, 'branchList']);
+    Route::get('admin/branch-list-by-company-id/{company_id}', [OrganizationController::class, 'branchListByCompanyID']);
 
     //Designation
     Route::post('designation-save-or-update', [MasterSettingsController::class, 'saveOrUpdateDesignation']);
@@ -39,9 +39,9 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::get('designation-list-by-id/{company_id}/{branch_id}', [MasterSettingsController::class, 'designationListByID']);
 
     //Department
-    Route::post('department-save-or-update', [OrganizationController::class, 'saveOrUpdateDepartment']);
-    Route::get('department-list', [OrganizationController::class, 'departmentList']);
-    Route::get('department-list-by-id/{company_id}/{branch_id}', [OrganizationController::class, 'departmentListByID']);
+    Route::post('admin/department-save-or-update', [OrganizationController::class, 'saveOrUpdateDepartment']);
+    Route::get('admin/department-list', [OrganizationController::class, 'departmentList']);
+    Route::get('admin/department-list-by-id/{company_id}/{branch_id}', [OrganizationController::class, 'departmentListByID']);
 
     //Employee 
     Route::post('add-employee', [EmployeeController::class, 'saveEmployee']);
