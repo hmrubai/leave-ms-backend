@@ -26,7 +26,7 @@ class OrganizationController extends Controller
                         'status' => false,
                         'message' => 'validation error',
                         'data' => $validateUser->errors()
-                    ], 401);
+                    ], 409);
                 }
 
                 $company_logo = null;
@@ -65,7 +65,7 @@ class OrganizationController extends Controller
                 return response()->json([
                     'status' => true,
                     'message' => 'Company has been updated successfully',
-                    'data' => [$request->is_active]
+                    'data' => []
                 ], 200);
 
             } else {
@@ -83,7 +83,7 @@ class OrganizationController extends Controller
                             'status' => false,
                             'message' => 'validation error',
                             'data' => $validateUser->errors()
-                        ], 401);
+                        ], 409);
                     }
 
                     $company_logo = null;
@@ -124,7 +124,7 @@ class OrganizationController extends Controller
                         'status' => false,
                         'message' => 'Company already exist!',
                         'data' => []
-                    ], 200);
+                    ], 409);
                 }
             }
 
@@ -133,7 +133,7 @@ class OrganizationController extends Controller
                 'status' => false,
                 'message' => $e->getMessage(),
                 'data' => []
-            ], 200);
+            ], 400);
         }
     }
 
@@ -163,7 +163,7 @@ class OrganizationController extends Controller
                         'status' => false,
                         'message' => 'validation error',
                         'data' => $validateUser->errors()
-                    ], 401);
+                    ], 409);
                 }
 
                 $isCompanyExist = Company::where('id', $request->company_id)->first();
@@ -205,7 +205,7 @@ class OrganizationController extends Controller
                             'status' => false,
                             'message' => 'validation error',
                             'data' => $validateUser->errors()
-                        ], 401);
+                        ], 409);
                     }
 
                     $isCompanyExist = Company::where('id', $request->company_id)->first();
@@ -236,7 +236,7 @@ class OrganizationController extends Controller
                         'status' => false,
                         'message' => 'Branch already exist!',
                         'data' => []
-                    ], 200);
+                    ], 409);
                 }
             }
 
@@ -245,13 +245,27 @@ class OrganizationController extends Controller
                 'status' => false,
                 'message' => $e->getMessage(),
                 'data' => []
-            ], 200);
+            ], 400);
         }
     }
 
     public function branchList (Request $request)
     {
-        $branch_list = Branch::where("is_active", true)->get();
+        $branch_list = Branch::select(
+                'branches.id', 
+                'branches.name', 
+                'branches.address', 
+                'branches.contact_no', 
+                'branches.company_id', 
+                'branches.is_active', 
+                'branches.created_at',
+                'companies.name as company_name'
+            )
+        ->where("branches.is_active", true)
+        ->leftJoin('companies', 'companies.id', 'branches.company_id')
+        ->orderBy('branches.name', 'ASC')
+        ->get();
+
         return response()->json([
             'status' => true,
             'message' => 'Successful',
@@ -285,7 +299,7 @@ class OrganizationController extends Controller
                         'status' => false,
                         'message' => 'validation error',
                         'data' => $validateUser->errors()
-                    ], 401);
+                    ], 409);
                 }
 
                 Department::where('id', $request->id)->update($request->all());
@@ -311,7 +325,7 @@ class OrganizationController extends Controller
                             'status' => false,
                             'message' => 'validation error',
                             'data' => $validateUser->errors()
-                        ], 401);
+                        ], 409);
                     }
 
                     Department::create($request->all());
@@ -325,7 +339,7 @@ class OrganizationController extends Controller
                         'status' => false,
                         'message' => 'Department already Exist!',
                         'data' => []
-                    ], 200);
+                    ], 409);
                 }
             }
 
@@ -334,7 +348,7 @@ class OrganizationController extends Controller
                 'status' => false,
                 'message' => $e->getMessage(),
                 'data' => []
-            ], 200);
+            ], 400);
         }
     }
 

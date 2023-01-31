@@ -27,7 +27,7 @@ class AuthController extends Controller
                     'status' => false,
                     'message' => 'validation error',
                     'data' => $validateUser->errors()
-                ], 401);
+                ], 409);
             }
 
             $profile_image = null;
@@ -95,7 +95,7 @@ class AuthController extends Controller
                     'status' => false,
                     'message' => 'validation error',
                     'data' => $validateUser->errors()
-                ], 401);
+                ], 409);
             }
 
             if(!Auth::attempt($request->only(['email', 'password']))){
@@ -103,7 +103,7 @@ class AuthController extends Controller
                     'status' => false,
                     'message' => 'Email & Password does not match with our record.',
                     'data' => []
-                ], 401);
+                ], 409);
             }
 
             $user = User::where('email', $request->email)->first();
@@ -113,7 +113,7 @@ class AuthController extends Controller
                     'status' => false,
                     'message' => 'Your account has been suspended. Please, contact to Administrator!',
                     'data' => []
-                ], 401);
+                ], 409);
             }
 
             $response_user = [
@@ -160,7 +160,7 @@ class AuthController extends Controller
                     'status' => false,
                     'message' => 'validation error',
                     'data' => $validateUser->errors()
-                ], 401);
+                ], 409);
             }
 
             if(!Auth::attempt($request->only(['employee_code', 'password']))){
@@ -168,7 +168,7 @@ class AuthController extends Controller
                     'status' => false,
                     'message' => 'Employee Code & Password does not match with our record.',
                     'data' => []
-                ], 401);
+                ], 409);
             }
 
             $user = User::where('employee_code', $request->employee_code)->first();
@@ -178,7 +178,7 @@ class AuthController extends Controller
                     'status' => false,
                     'message' => 'Your account has been suspended. Please, contact to Administrator!',
                     'data' => []
-                ], 401);
+                ], 409);
             }
 
             $response_user = [
@@ -299,7 +299,7 @@ class AuthController extends Controller
                         'status' => false,
                         'message' => 'User already Exist!',
                         'data' => []
-                    ], 200);
+                    ], 409);
                 }
             }
 
@@ -308,7 +308,7 @@ class AuthController extends Controller
                 'status' => false,
                 'message' => $e->getMessage(),
                 'data' => []
-            ], 200);
+            ], 400);
         }
     }
 
@@ -326,7 +326,7 @@ class AuthController extends Controller
             //         'status' => false,
             //         'message' => 'validation error',
             //         'data' => $validateUser->errors()
-            //     ], 401);
+            //     ], 409);
             // }
 
             if(!$request->name && !$request->contact_no && !$request->country_id && !$request->address && !$request->institution && !$request->education && !$request->hasFile('image')){

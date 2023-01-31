@@ -29,7 +29,7 @@ class MasterSettingsController extends Controller
                         'status' => false,
                         'message' => 'validation error',
                         'data' => $validateUser->errors()
-                    ], 401);
+                    ], 409);
                 }
 
                 Designation::where('id', $request->id)->update($request->all());
@@ -55,7 +55,7 @@ class MasterSettingsController extends Controller
                             'status' => false,
                             'message' => 'validation error',
                             'data' => $validateUser->errors()
-                        ], 401);
+                        ], 409);
                     }
 
                     Designation::create($request->all());
@@ -69,7 +69,7 @@ class MasterSettingsController extends Controller
                         'status' => false,
                         'message' => 'Designation already Exist!',
                         'data' => []
-                    ], 200);
+                    ], 409);
                 }
             }
 
@@ -78,7 +78,7 @@ class MasterSettingsController extends Controller
                 'status' => false,
                 'message' => $e->getMessage(),
                 'data' => []
-            ], 200);
+            ], 400);
         }
     }
 
@@ -130,7 +130,7 @@ class MasterSettingsController extends Controller
                         'status' => false,
                         'message' => 'validation error',
                         'data' => $validateUser->errors()
-                    ], 401);
+                    ], 409);
                 }
 
                 FiscalYear::where('id', $request->id)->update($request->all());
@@ -157,7 +157,7 @@ class MasterSettingsController extends Controller
                             'status' => false,
                             'message' => 'validation error',
                             'data' => $validateUser->errors()
-                        ], 401);
+                        ], 409);
                     }
 
                     $fiscal_year = FiscalYear::where('is_active', true)->get();
@@ -178,7 +178,7 @@ class MasterSettingsController extends Controller
                         'status' => false,
                         'message' => 'Fiscal Year already Exist!',
                         'data' => []
-                    ], 200);
+                    ], 409);
                 }
             }
 
@@ -187,7 +187,7 @@ class MasterSettingsController extends Controller
                 'status' => false,
                 'message' => $e->getMessage(),
                 'data' => []
-            ], 200);
+            ], 400);
         }
     }
 

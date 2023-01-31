@@ -19,7 +19,7 @@ class Authenticate extends Middleware
                 'status' => false,
                 'message' => 'Unauthorized.',
                 'data' => []
-            ], 401);
+            ], 409);
             //return route('login');
         }
     }

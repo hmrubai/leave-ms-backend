@@ -53,6 +53,8 @@ Route::middleware('auth:sanctum')->group( function () {
     
     //Leave Policy
     Route::post('leave-policy-save-or-update', [LeavePolicyController::class, 'saveOrUpdateLeavePolicy']);
+    Route::get('leave-policy-list', [LeavePolicyController::class, 'leavePolicyList']);
+    
 
     Route::get('get-profile', [AuthController::class, 'getProfile']);
     Route::post('profile-update', [AuthController::class, 'updateUser']);

@@ -31,7 +31,7 @@ class LeavePolicyController extends Controller
                         'status' => false,
                         'message' => 'validation error',
                         'data' => $validateUser->errors()
-                    ], 401);
+                    ], 409);
                 }
 
                 LeavePolicy::where('id', $request->id)->update($request->all());
@@ -58,7 +58,7 @@ class LeavePolicyController extends Controller
                             'status' => false,
                             'message' => 'validation error',
                             'data' => $validateUser->errors()
-                        ], 401);
+                        ], 409);
                     }
 
                     LeavePolicy::create($request->all());
@@ -72,7 +72,7 @@ class LeavePolicyController extends Controller
                         'status' => false,
                         'message' => 'Leave Policy already Exist!',
                         'data' => []
-                    ], 200);
+                    ], 409);
                 }
             }
 
@@ -81,8 +81,21 @@ class LeavePolicyController extends Controller
                 'status' => false,
                 'message' => $e->getMessage(),
                 'data' => []
-            ], 200);
+            ], 400);
         }
+    }
+
+    public function leavePolicyList (Request $request)
+    {
+        $lp_list = LeavePolicy::where("is_active", true)
+        ->orderBy('leave_policies.leave_title', 'ASC')
+        ->get();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Successful',
+            'data' => $lp_list
+        ], 200);
     }
 
     // 'company_id',

@@ -58,7 +58,7 @@ class EmployeeController extends Controller
                 'status' => false,
                 'message' => 'validation error',
                 'data' => $validateUser->errors()
-            ], 401);
+            ], 409);
         }
 
         $isExist = EmployeeInfo::where('email', $request->email)->first();
@@ -136,7 +136,7 @@ class EmployeeController extends Controller
                 'status' => false,
                 'message' => 'Employee already Exist!',
                 'data' => []
-            ], 200);
+            ], 409);
         }
     }
 
@@ -171,7 +171,7 @@ class EmployeeController extends Controller
                 'status' => false,
                 'message' => 'validation error',
                 'data' => $validateUser->errors()
-            ], 401);
+            ], 409);
         }
 
         $isExist = EmployeeInfo::where('id', $request->id)->first();
