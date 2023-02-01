@@ -233,4 +233,14 @@ class MasterSettingsController extends Controller
         ], 200);
     }
 
+    public function fiscalYearList(Request $request)
+    {
+        $fiscal_year_list = FiscalYear::orderBy('id', 'DESC')->get();
+        return response()->json([
+            'status' => true,
+            'message' => 'Successful',
+            'data' => $fiscal_year_list
+        ], 200);
+    }
+
 }
