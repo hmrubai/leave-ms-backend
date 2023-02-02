@@ -98,17 +98,24 @@ class LeavePolicyController extends Controller
         ], 200);
     }
 
-    // 'company_id',
-    // 'leave_title',
-    // 'leave_short_code',
-    // 'total_days',
-    // 'is_applicable_for_all',
-    // 'applicable_for',
-    // 'is_leave_cut_applicable',
-    // 'is_carry_forward',
-    // 'is_document_upload',
-    // 'is_holiday_deduct',
-    // 'document_upload_after_days',
-    // 'max_carry_forward_days',
-    // 'is_active',
+    public function leavePolicyListByCompanyID (Request $request)
+    {
+        $company_id = $request->company_id ? $request->company_id : 0;
+
+        $lp_list = LeavePolicy::where("is_active", true)
+        ->when($company_id, function ($query) use ($company_id){
+            return $query->where('leave_policies.company_id', $company_id);
+        })
+        ->orderBy('leave_policies.leave_title', 'ASC')
+        ->get();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Successful',
+            'data' => $lp_list
+        ], 200);
+    }
+
+    
+
 }
