@@ -6,6 +6,7 @@ use Exception;
 use App\Models\User;
 use App\Models\Designation;
 use App\Models\FiscalYear;
+use App\Models\EmploymentType;
 use Illuminate\Support\Facades\Validator;
 
 use Illuminate\Http\Request;
@@ -240,6 +241,81 @@ class MasterSettingsController extends Controller
             'status' => true,
             'message' => 'Successful',
             'data' => $fiscal_year_list
+        ], 200);
+    }
+
+    public function saveOrUpdateEmploymentType (Request $request)
+    {
+        try {
+            if($request->id){
+                $validateUser = Validator::make($request->all(), 
+                [
+                    'type' => 'required'
+                ]);
+
+                if($validateUser->fails()){
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'validation error',
+                        'data' => $validateUser->errors()
+                    ], 409);
+                }
+
+                EmploymentType::where('id', $request->id)->update($request->all());
+                return response()->json([
+                    'status' => true,
+                    'message' => 'Employment Type has been updated successfully',
+                    'data' => []
+                ], 200);
+
+            } else {
+                $isExist = EmploymentType::where('type', $request->type)->first();
+                if (empty($isExist)) 
+                {
+                    $validateUser = Validator::make($request->all(), 
+                    [
+                        'type' => 'required'
+                    ]);
+
+                    if($validateUser->fails()){
+                        return response()->json([
+                            'status' => false,
+                            'message' => 'validation error',
+                            'data' => $validateUser->errors()
+                        ], 409);
+                    }
+
+                    EmploymentType::create($request->all());
+                    return response()->json([
+                        'status' => true,
+                        'message' => 'Employment Type has been created successfully',
+                        'data' => []
+                    ], 200);
+                }else{
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'Employment Type already Exist!',
+                        'data' => []
+                    ], 409);
+                }
+            }
+
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage(),
+                'data' => []
+            ], 400);
+        }
+    }
+
+    public function employmentTypeList(Request $request)
+    {
+        $employment_type_list = EmploymentType::orderBy('type', 'ASC')->get();
+        return response()->json([
+            'status' => true,
+            'message' => 'Successful',
+            'data' => $employment_type_list
         ], 200);
     }
 
