@@ -100,7 +100,7 @@ class LeaveBalanceController extends Controller
             ->when($employment_type_id, function ($query) use ($employment_type_id){
                 return $query->where('leave_balance_settings.employment_type_id', $employment_type_id);
             })
-            ->orderBy('id', 'ASC')
+            ->orderBy('leave_policies.leave_title', 'ASC')
             ->get();
 
         return response()->json([
