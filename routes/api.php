@@ -20,7 +20,7 @@ Route::post('/auth/login-via-code', [AuthController::class, 'loginViaCode']);
 Route::get('division-list', [LocationController::class, 'divisionList']);
 Route::get('district-list/{division_id}', [LocationController::class, 'districtListByID']);
 Route::get('upazila-list/{district_id}', [LocationController::class, 'upazilaListByID']);
-Route::get('upazila-list/{upazila_id}', [LocationController::class, 'unionListByID']);
+Route::get('area-list/{upazilla_id}', [LocationController::class, 'unionListByID']);
 
 Route::middleware('auth:sanctum')->group( function () {
     Route::get('/user', function (Request $request) {
@@ -45,8 +45,9 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::get('admin/department-list-by-id/{company_id}/{branch_id}', [OrganizationController::class, 'departmentListByID']);
 
     //Employee 
-    Route::post('add-employee', [EmployeeController::class, 'saveEmployee']);
-    Route::post('update-employee', [EmployeeController::class, 'updateEmployee']);
+    Route::post('admin/add-employee', [EmployeeController::class, 'saveEmployee']);
+    Route::post('admin/update-employee', [EmployeeController::class, 'updateEmployee']);
+    Route::get('admin/employee-list', [EmployeeController::class, 'employeeList']);
 
     //FiscalYear
     Route::post('admin/fiscal-year-save-or-update', [MasterSettingsController::class, 'saveOrUpdateFiscalYear']);

@@ -62,6 +62,12 @@ class EmployeeController extends Controller
             ], 409);
         }
 
+        $is_active = false;
+
+        if($request->is_active == "true"){
+            $is_active = true;
+        }
+
         $isExist = EmployeeInfo::where('email', $request->email)->first();
         if (empty($isExist)) 
         {
@@ -187,6 +193,12 @@ class EmployeeController extends Controller
             'city_id' => 'required'
         ]);
 
+        $is_active = false;
+
+        if($request->is_active == "true"){
+            $is_active = true;
+        }
+
         if($validateUser->fails()){
             return response()->json([
                 'status' => false,
@@ -247,7 +259,7 @@ class EmployeeController extends Controller
                 "district_id" => $request->district_id,
                 "city_id" => $request->city_id,
                 "area_id" => $request->area_id,
-                "is_active" => $request->is_active,
+                "is_active" => $is_active,
                 "office_contact_number" => $request->office_contact_number,
                 "finger_print_id" => $request->finger_print_id,
                 "personal_alt_contact_number" => $request->personal_alt_contact_number,
@@ -270,7 +282,9 @@ class EmployeeController extends Controller
 
             if($request->hasFile('image')){
                 $existing_user = User::where('id', $isExist->user_id)->first();
-                unlink($existing_user->image);
+                if($existing_user->image){
+                    unlink($existing_user->image);
+                }
 
                 $existing_user->update([
                     'image' => $profile_url
@@ -290,4 +304,21 @@ class EmployeeController extends Controller
             ], 200);
         }
     }
+
+    public function employeeList (Request $request)
+    {
+        $employee_list = EmployeeInfo::select('employee_infos.*', 'designations.title as designation', 'departments.name as department', 'users.image')
+        ->leftJoin('users', 'users.id', 'employee_infos.user_id')
+        ->leftJoin('designations', 'designations.id', 'employee_infos.designation_id')
+        ->leftJoin('departments', 'departments.id', 'employee_infos.department_id')
+        ->orderBy('employee_infos.name', 'ASC')
+        ->get();
+        
+        return response()->json([
+            'status' => true,
+            'message' => 'Successful',
+            'data' => $employee_list
+        ], 200);
+    }
+
 }
