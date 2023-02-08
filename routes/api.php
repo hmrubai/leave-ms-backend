@@ -48,6 +48,8 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::post('admin/add-employee', [EmployeeController::class, 'saveEmployee']);
     Route::post('admin/update-employee', [EmployeeController::class, 'updateEmployee']);
     Route::get('admin/employee-list', [EmployeeController::class, 'employeeList']);
+    Route::get('admin/employee-details-by-id/{employee_id}', [EmployeeController::class, 'employeeDetailsByID']);
+    
 
     //FiscalYear
     Route::post('admin/fiscal-year-save-or-update', [MasterSettingsController::class, 'saveOrUpdateFiscalYear']);

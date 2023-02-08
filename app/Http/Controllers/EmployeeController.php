@@ -125,7 +125,7 @@ class EmployeeController extends Controller
                 "city_id" => $request->city_id,
                 "area_id" => $request->area_id,
                 "is_stuckoff" => false,
-                "is_active" => $request->is_active,
+                "is_active" => $is_active,
                 "office_contact_number" => $request->office_contact_number,
                 "finger_print_id" => $request->finger_print_id,
                 "personal_alt_contact_number" => $request->personal_alt_contact_number,
@@ -318,6 +318,32 @@ class EmployeeController extends Controller
             'status' => true,
             'message' => 'Successful',
             'data' => $employee_list
+        ], 200);
+    }
+
+    public function employeeDetailsByID (Request $request)
+    {
+        $employee_id = $request->employee_id ? $request->employee_id : 0;
+
+        if(!$employee_id){
+            return response()->json([
+                'status' => false,
+                'message' => 'Please, attach Employee ID',
+                'data' => []
+            ], 200);
+        }
+
+        $employee = EmployeeInfo::select('employee_infos.*', 'designations.title as designation', 'departments.name as department', 'users.image')
+        ->leftJoin('users', 'users.id', 'employee_infos.user_id')
+        ->leftJoin('designations', 'designations.id', 'employee_infos.designation_id')
+        ->leftJoin('departments', 'departments.id', 'employee_infos.department_id')
+        ->where('employee_infos.id', $employee_id)
+        ->first();
+        
+        return response()->json([
+            'status' => true,
+            'message' => 'Successful',
+            'data' => $employee
         ], 200);
     }
 
