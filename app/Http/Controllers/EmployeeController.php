@@ -6,9 +6,13 @@ namespace App\Http\Controllers;
 use Exception;
 use App\Models\User;
 use App\Models\Company;
+use App\Models\FiscalYear;
 use App\Models\Designation;
 use App\Models\EmployeeInfo;
 use Illuminate\Http\Request;
+use App\Models\LeavePolicy;
+use App\Models\LeaveBalance;
+use App\Models\LeaveBalanceSetting;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
@@ -25,6 +29,141 @@ class EmployeeController extends Controller
         else{
             return 'BB' . str_pad($employee_id, 4, '0', STR_PAD_LEFT);
         }
+    }
+
+    public function addLeaveBalance($employee_id)
+    {
+        $employee_details = EmployeeInfo::where('id', $employee_id)->first();
+        $employment_type_id = $employee_details->employment_type_id;
+        $fiscal_year = FiscalYear::where('is_active', true)->first();
+        $leave_policy = LeavePolicy::all();
+
+        foreach ($leave_policy as $policy) {
+            $isBalanceExist = LeaveBalance::where('employee_id', $employee_id)->where('leave_policy_id', $policy->id)->where('fiscal_year_id', $fiscal_year->id)->first();
+
+            if(!$isBalanceExist){
+                $setting = LeaveBalanceSetting::where('leave_policy_id', $policy->id)->where('employment_type_id', $employment_type_id)->first();
+             
+                if(!empty($setting)){
+
+                    if($policy->is_applicable_for_all){
+                        LeaveBalance::create([
+                            'employee_id' => $employee_id,
+                            'user_id' => $employee_details->user_id,
+                            'leave_policy_id' => $policy->id,
+                            'fiscal_year_id' => $fiscal_year->id,
+                            'total_days' => $setting->total_days,
+                            'availed_days' => 0,
+                            'remaining_days' => $setting->total_days,
+                            'carry_forward_balance' => 0,
+                            'is_active' => true
+                        ]);
+                    }else{
+                        if($policy->applicable_for == 'Male' && $employee_details->gender == 'Male')
+                        {
+                            LeaveBalance::create([
+                                'employee_id' => $employee_id,
+                                'user_id' => $employee_details->user_id,
+                                'leave_policy_id' => $policy->id,
+                                'fiscal_year_id' => $fiscal_year->id,
+                                'total_days' => $setting->total_days,
+                                'availed_days' => 0,
+                                'remaining_days' => $setting->total_days,
+                                'carry_forward_balance' => 0,
+                                'is_active' => true
+                            ]); 
+                        }
+
+                        if($policy->applicable_for == 'Female' && $employee_details->gender == 'Female')
+                        {
+                            LeaveBalance::create([
+                                'employee_id' => $employee_id,
+                                'user_id' => $employee_details->user_id,
+                                'leave_policy_id' => $policy->id,
+                                'fiscal_year_id' => $fiscal_year->id,
+                                'total_days' => $setting->total_days,
+                                'availed_days' => 0,
+                                'remaining_days' => $setting->total_days,
+                                'carry_forward_balance' => 0,
+                                'is_active' => true
+                            ]); 
+                        }
+
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
+    public function addManualLeaveBalance(Request $request)
+    {
+        $employee_id = $request->employee_id;
+        $employee_details = EmployeeInfo::where('id', $employee_id)->first();
+        $employment_type_id = $employee_details->employment_type_id;
+        $fiscal_year = FiscalYear::where('is_active', true)->first();
+        $leave_policy = LeavePolicy::all();
+
+        foreach ($leave_policy as $policy) {
+            $isBalanceExist = LeaveBalance::where('employee_id', $employee_id)->where('leave_policy_id', $policy->id)->where('fiscal_year_id', $fiscal_year->id)->first();
+
+            if(!$isBalanceExist){
+                $setting = LeaveBalanceSetting::where('leave_policy_id', $policy->id)->where('employment_type_id', $employment_type_id)->first();
+             
+                if(!empty($setting)){
+
+                    if($policy->is_applicable_for_all){
+                        LeaveBalance::create([
+                            'employee_id' => $employee_id,
+                            'user_id' => $employee_details->user_id,
+                            'leave_policy_id' => $policy->id,
+                            'fiscal_year_id' => $fiscal_year->id,
+                            'total_days' => $setting->total_days,
+                            'availed_days' => 0,
+                            'remaining_days' => $setting->total_days,
+                            'carry_forward_balance' => 0,
+                            'is_active' => true
+                        ]);
+                    }else{
+                        if($policy->applicable_for == 'Male' && $employee_details->gender == 'Male')
+                        {
+                            LeaveBalance::create([
+                                'employee_id' => $employee_id,
+                                'user_id' => $employee_details->user_id,
+                                'leave_policy_id' => $policy->id,
+                                'fiscal_year_id' => $fiscal_year->id,
+                                'total_days' => $setting->total_days,
+                                'availed_days' => 0,
+                                'remaining_days' => $setting->total_days,
+                                'carry_forward_balance' => 0,
+                                'is_active' => true
+                            ]); 
+                        }
+
+                        if($policy->applicable_for == 'Female' && $employee_details->gender == 'Female')
+                        {
+                            LeaveBalance::create([
+                                'employee_id' => $employee_id,
+                                'user_id' => $employee_details->user_id,
+                                'leave_policy_id' => $policy->id,
+                                'fiscal_year_id' => $fiscal_year->id,
+                                'total_days' => $setting->total_days,
+                                'availed_days' => 0,
+                                'remaining_days' => $setting->total_days,
+                                'carry_forward_balance' => 0,
+                                'is_active' => true
+                            ]); 
+                        }
+
+                    }
+                }
+            }
+        }
+        return response()->json([
+            'status' => true,
+            'message' => 'Leave Balance Added Successful',
+            'data' => []
+        ], 200);
     }
 
     public function saveEmployee (Request $request)
@@ -51,7 +190,8 @@ class EmployeeController extends Controller
             'designation_id' => 'required',
             'division_id' => 'required',
             'district_id' => 'required',
-            'city_id' => 'required'
+            'city_id' => 'required',
+            'user_type' => 'required'
         ]);
 
         if($validateUser->fails()){
@@ -82,6 +222,12 @@ class EmployeeController extends Controller
                 $profile_url = $destinationProfile . '/' . $profile_image;
             }
 
+            $user_type = 'Employee';
+
+            if($request->user_type){
+                $user_type = $request->user_type;
+            }
+
             $employee_code = $this->generateEmployeeCode($request->company_id, $request->employee_id);
 
             $user = User::create([
@@ -93,11 +239,11 @@ class EmployeeController extends Controller
                 'address' => $request->present_address,
                 'institution' => $request->institution,
                 'education' => $request->education,
-                'user_type' => "Employee",
+                'user_type' => $user_type,
                 'password' => Hash::make('BB@2023')
             ]);
 
-            EmployeeInfo::create([
+            $employee = EmployeeInfo::create([
                 "user_id" => $user->id,
                 "name" => $request->name,
                 "email" => $request->email,
@@ -152,6 +298,8 @@ class EmployeeController extends Controller
                 ]);
             }
 
+            $this->addLeaveBalance($employee->id);
+
             return response()->json([
                 'status' => true,
                 'message' => 'Employee has been added successfully',
@@ -190,7 +338,8 @@ class EmployeeController extends Controller
             'employment_type_id' => 'required',
             'division_id' => 'required',
             'district_id' => 'required',
-            'city_id' => 'required'
+            'city_id' => 'required',
+            'user_type' => 'required'
         ]);
 
         $is_active = false;
@@ -211,6 +360,12 @@ class EmployeeController extends Controller
 
         if (!empty($isExist)) 
         {
+            $user_type = 'Employee';
+
+            if($request->user_type){
+                $user_type = $request->user_type;
+            }
+
             $employee_code = $this->generateEmployeeCode($request->company_id, $request->employee_id);
 
             $profile_image = null;
@@ -231,7 +386,8 @@ class EmployeeController extends Controller
                 'company_id' => $request->company_id,
                 'address' => $request->present_address,
                 'institution' => $request->institution,
-                'education' => $request->education
+                'education' => $request->education,
+                'user_type' => $user_type
             ]);
 
             EmployeeInfo::where('id', $request->id)->update([
@@ -307,7 +463,7 @@ class EmployeeController extends Controller
 
     public function employeeList (Request $request)
     {
-        $employee_list = EmployeeInfo::select('employee_infos.*', 'designations.title as designation', 'departments.name as department', 'users.image')
+        $employee_list = EmployeeInfo::select('employee_infos.*', 'designations.title as designation', 'departments.name as department', 'users.image', 'users.user_type')
         ->leftJoin('users', 'users.id', 'employee_infos.user_id')
         ->leftJoin('designations', 'designations.id', 'employee_infos.designation_id')
         ->leftJoin('departments', 'departments.id', 'employee_infos.department_id')
@@ -333,10 +489,32 @@ class EmployeeController extends Controller
             ], 200);
         }
 
-        $employee = EmployeeInfo::select('employee_infos.*', 'designations.title as designation', 'departments.name as department', 'users.image')
+        $employee = EmployeeInfo::select(
+            'employee_infos.*', 
+            'designations.title as designation', 
+            'departments.name as department', 
+            'users.image',
+            'users.institution',
+            'users.education',
+            'users.user_type',
+            'companies.name as company_name',
+            'branches.name as branch_name',
+            'divisions.name as division_name',
+            'districts.name as district_name',
+            'upazilas.name as city_name',
+            'unions.name as area_name',
+            'employment_types.type as employment_type'
+        )
         ->leftJoin('users', 'users.id', 'employee_infos.user_id')
+        ->leftJoin('companies', 'companies.id', 'employee_infos.company_id')
+        ->leftJoin('branches', 'branches.id', 'employee_infos.branch_id')
+        ->leftJoin('employment_types', 'employment_types.id', 'employee_infos.employment_type_id')
         ->leftJoin('designations', 'designations.id', 'employee_infos.designation_id')
         ->leftJoin('departments', 'departments.id', 'employee_infos.department_id')
+        ->leftJoin('divisions', 'divisions.id', 'employee_infos.division_id')
+        ->leftJoin('districts', 'districts.id', 'employee_infos.district_id')
+        ->leftJoin('upazilas', 'upazilas.id', 'employee_infos.city_id')
+        ->leftJoin('unions', 'unions.id', 'employee_infos.area_id')
         ->where('employee_infos.id', $employee_id)
         ->first();
         
