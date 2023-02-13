@@ -125,6 +125,7 @@ class LeaveBalanceController extends Controller
             'users.image',
             'users.institution',
             'users.education',
+            'users.user_type',
             'companies.name as company_name',
             'branches.name as branch_name',
             'divisions.name as division_name',
