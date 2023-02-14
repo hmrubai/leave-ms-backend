@@ -165,4 +165,19 @@ class LeaveBalanceController extends Controller
             'data' => $employee
         ], 200);
     }
+
+    public function updateEmployeeLeaveBalance(Request $request)
+    {
+        LeaveBalance::where('id', $request->id)->update([
+            'total_days' => $request->total_days,
+            'availed_days' => $request->availed_days,
+            'remaining_days' => $request->remaining_days
+        ]);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Leave balance updated successful',
+            'data' => []
+        ], 200);
+    }
 }

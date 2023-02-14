@@ -10,6 +10,7 @@ use App\Http\Controllers\LeavePolicyController;
 use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\MasterSettingsController;
 use App\Http\Controllers\LeaveBalanceController;
+use App\Http\Controllers\LeaveApprovalFlowSetupController;
 
 
 Route::post('/auth/register', [AuthController::class, 'registerUser']);
@@ -70,8 +71,10 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::post('admin/leave-setting-save-or-update', [LeaveBalanceController::class, 'saveOrUpdateLeaveBalanceSetting']);
     Route::get('admin/leave-setting-list/{employment_type_id}', [LeaveBalanceController::class, 'leaveBalanceSettingList']);
     Route::get('admin/leave-balance-list/{employee_id}', [LeaveBalanceController::class, 'employeeLeaveBalanceList']);
-    
+    Route::post('admin/leave-balance-update', [LeaveBalanceController::class, 'updateEmployeeLeaveBalance']);
 
+    //Approval Flow Setup
+    Route::post('admin/add-approval-flow', [LeaveApprovalFlowSetupController::class, 'addApprovalFlow']);
 
     Route::get('get-profile', [AuthController::class, 'getProfile']);
     Route::post('profile-update', [AuthController::class, 'updateUser']);
