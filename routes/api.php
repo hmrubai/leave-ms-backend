@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\LeavePolicyController;
@@ -76,6 +77,10 @@ Route::middleware('auth:sanctum')->group( function () {
     //Approval Flow Setup
     Route::post('admin/add-approval-flow', [LeaveApprovalFlowSetupController::class, 'addApprovalFlow']);
 
+    //Calender Setup
+    Route::get('admin/day-type-list', [CalendarController::class, 'dayTypeList']);
+    Route::get('admin/day-status-list', [CalendarController::class, 'dayStatusList']);
+    
     Route::get('get-profile', [AuthController::class, 'getProfile']);
     Route::post('profile-update', [AuthController::class, 'updateUser']);
     Route::get('admin/expert-list', [AuthController::class, 'getAdminExpertList']);
