@@ -85,6 +85,7 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::get('admin/calender', [CalendarController::class, 'getCalendar']);
     Route::post('admin/update-calender', [CalendarController::class, 'updateCalendar']);
     Route::post('admin/generate-calender', [CalendarController::class, 'generateCalendar']);
+    Route::get('admin/year-list', [CalendarController::class, 'getYearList']);
 
     Route::get('get-profile', [AuthController::class, 'getProfile']);
     Route::post('profile-update', [AuthController::class, 'updateUser']);

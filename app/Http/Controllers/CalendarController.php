@@ -100,7 +100,13 @@ class CalendarController extends Controller
         ], 200);
     }
 
-    public function getCalendar(){
+    public function getCalendar(Request $request){
+        $year = $request->year ? $request->year : 0;
+
+        if($year == 'null'){
+            $year = 0;
+        }
+
         $calendar_list = Calendar::select(
             'calendars.id',
             'calendars.date',
@@ -114,6 +120,9 @@ class CalendarController extends Controller
             'day_types.day_short_code as day_type_short_code'
         )
         ->leftJoin('day_types', 'day_types.id', 'calendars.day_type_id')
+        ->when($year, function ($query) use ($year){
+            return $query->where('calendars.year', $year);
+        })
         ->orderBy('id', "DESC")
         ->get();
 
@@ -121,6 +130,16 @@ class CalendarController extends Controller
             'status' => true,
             'message' => 'Successful',
             'data' => $calendar_list
+        ], 200);
+    }
+
+    public function getYearList(Request $request){
+        $year_list = Calendar::groupBy('year')->get();
+        
+        return response()->json([
+            'status' => true,
+            'message' => 'Successful',
+            'data' => $year_list
         ], 200);
     }
 
