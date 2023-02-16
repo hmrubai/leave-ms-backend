@@ -51,10 +51,101 @@ class CalendarController extends Controller
         ->leftJoin('day_types as dt_6', 'dt_6.id', 'day_status_settings.thursday')
         ->leftJoin('day_types as dt_7', 'dt_7.id', 'day_status_settings.friday')
         ->first();
+
         return response()->json([
             'status' => true,
             'message' => 'Successful',
             'data' => $day_status
+        ], 200);
+    }
+
+    public function updateDayStatusSetup(Request $request)
+    {
+        $validateUser = Validator::make($request->all(), 
+        [
+            'id' => 'required',
+            'saturday' => 'required',
+            'sunday' => 'required',
+            'monday' => 'required',
+            'tuesday' => 'required',
+            'wednesday' => 'required',
+            'thursday' => 'required',
+            'friday' => 'required'
+        ]);
+
+        if($validateUser->fails()){
+            return response()->json([
+                'status' => false,
+                'message' => 'validation error',
+                'data' => $validateUser->errors()
+            ], 409);
+        }
+
+        DayStatusSetting::where('id', $request->id)->update([
+            'saturday' => $request->saturday,
+            'sunday' =>  $request->sunday,
+            'monday' => $request->monday,
+            'tuesday' => $request->tuesday,
+            'wednesday' => $request->wednesday,
+            'thursday' => $request->thursday,
+            'friday' => $request->friday
+        ]);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Day Status has been updated successfully',
+            'data' => []
+        ], 200);
+    }
+
+    public function getCalendar(){
+        $calendar_list = Calendar::select(
+            'calendars.id',
+            'calendars.date',
+            'calendars.year',
+            'calendars.day_title',
+            'calendars.day_note',
+            'calendars.month_in_number',
+            'calendars.day_type_id',
+            'calendars.is_active',
+            'day_types.title as day_type_title',
+            'day_types.day_short_code as day_type_short_code'
+        )
+        ->leftJoin('day_types', 'day_types.id', 'calendars.day_type_id')
+        ->get();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Successful',
+            'data' => $calendar_list
+        ], 200);
+    }
+
+    public function updateCalendar(Request $request)
+    {
+        $validateUser = Validator::make($request->all(), 
+        [
+            'id' => 'required',
+            'day_type_id' => 'required'
+        ]);
+
+        if($validateUser->fails()){
+            return response()->json([
+                'status' => false,
+                'message' => 'validation error',
+                'data' => $validateUser->errors()
+            ], 409);
+        }
+
+        Calendar::where('id', $request->id)->update([
+            'day_type_id' => $request->day_type_id,
+            'day_note' =>  $request->day_note ?? $request->day_note
+        ]);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Calendar has been updated successfully',
+            'data' => []
         ], 200);
     }
 }

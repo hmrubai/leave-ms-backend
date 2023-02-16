@@ -51,6 +51,7 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::post('admin/update-employee', [EmployeeController::class, 'updateEmployee']);
     Route::get('admin/employee-list', [EmployeeController::class, 'employeeList']);
     Route::get('admin/employee-details-by-id/{employee_id}', [EmployeeController::class, 'employeeDetailsByID']);
+    Route::get('admin/employee-filter-list', [EmployeeController::class, 'employeeFilterList']);
 
     Route::post('admin/update-leave-balance', [EmployeeController::class, 'addManualLeaveBalance']);
     
@@ -80,7 +81,10 @@ Route::middleware('auth:sanctum')->group( function () {
     //Calender Setup
     Route::get('admin/day-type-list', [CalendarController::class, 'dayTypeList']);
     Route::get('admin/day-status-list', [CalendarController::class, 'dayStatusList']);
-    
+    Route::post('admin/update-day-status', [CalendarController::class, 'updateDayStatusSetup']);
+    Route::get('admin/calender', [CalendarController::class, 'getCalendar']);
+    Route::post('admin/update-calender', [CalendarController::class, 'updateCalendar']);
+
     Route::get('get-profile', [AuthController::class, 'getProfile']);
     Route::post('profile-update', [AuthController::class, 'updateUser']);
     Route::get('admin/expert-list', [AuthController::class, 'getAdminExpertList']);
