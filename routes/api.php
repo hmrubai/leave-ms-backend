@@ -84,6 +84,7 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::post('admin/update-day-status', [CalendarController::class, 'updateDayStatusSetup']);
     Route::get('admin/calender', [CalendarController::class, 'getCalendar']);
     Route::post('admin/update-calender', [CalendarController::class, 'updateCalendar']);
+    Route::post('admin/generate-calender', [CalendarController::class, 'generateCalendar']);
 
     Route::get('get-profile', [AuthController::class, 'getProfile']);
     Route::post('profile-update', [AuthController::class, 'updateUser']);

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use Exception;
+use Carbon\Carbon;
+use Carbon\CarbonPeriod;
 use App\Models\User;
 use App\Models\Company;
 use App\Models\DayType;
@@ -112,6 +114,7 @@ class CalendarController extends Controller
             'day_types.day_short_code as day_type_short_code'
         )
         ->leftJoin('day_types', 'day_types.id', 'calendars.day_type_id')
+        ->orderBy('id', "DESC")
         ->get();
 
         return response()->json([
@@ -145,6 +148,90 @@ class CalendarController extends Controller
         return response()->json([
             'status' => true,
             'message' => 'Calendar has been updated successfully',
+            'data' => []
+        ], 200);
+    }
+
+    public function generateCalendar(Request $request)
+    {
+        $validateUser = Validator::make($request->all(), 
+        [
+            'academic_year' => 'required'
+        ]);
+
+        if($validateUser->fails()){
+            return response()->json([
+                'status' => false,
+                'message' => 'validation error',
+                'data' => $validateUser->errors()
+            ], 409);
+        }
+
+        $startDate = Carbon::createFromFormat('Y-m-d', $request->academic_year . '-01-01');
+        $endDate = Carbon::createFromFormat('Y-m-d', $request->academic_year . '-12-31');
+        $dateRange = CarbonPeriod::create($startDate, $endDate);
+   
+        $get_list = $dateRange->toArray();
+
+        $day_status = DayStatusSetting::first();
+
+        $isExist = Calendar::where('year', $request->academic_year)->first();
+
+        if(!empty($isExist)){
+            return response()->json([
+                'status' => false,
+                'message' => 'Calendar already Exist!',
+                'data' => []
+            ], 409);
+        }
+
+        $insert_data = [];
+        foreach ($get_list as $item) 
+        {
+            $day = date('l', strtotime($item));
+            $month = date('n', strtotime($item));
+            $year = date('Y', strtotime($item));
+            $date = date('Y-m-d', strtotime($item));
+            $status_id = 0;
+
+            if($day == "Saturday"){
+                $status_id = $day_status->saturday;
+            }
+            else if($day == "Sunday"){
+                $status_id = $day_status->sunday;
+            }
+            else if($day == "Monday"){
+                $status_id = $day_status->monday;
+            }
+            else if($day == "Tuesday"){
+                $status_id = $day_status->tuesday;
+            }
+            else if($day == "Wednesday"){
+                $status_id = $day_status->wednesday;
+            }
+            else if($day == "Thursday"){
+                $status_id = $day_status->thursday;
+            }
+            else if($day == "Friday"){
+                $status_id = $day_status->friday;
+            }
+
+            array_push($insert_data, [
+                "date" => $date,
+                "year" => $year,
+                "day_title" => $day,
+                "day_note" => "",
+                "month_in_number" => $month,
+                "day_type_id" => $status_id,
+                "is_active" => true
+            ]);
+        }
+
+        Calendar::insert($insert_data);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Calendar has been added successfully',
             'data' => []
         ], 200);
     }
