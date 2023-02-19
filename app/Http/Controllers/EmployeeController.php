@@ -511,6 +511,40 @@ class EmployeeController extends Controller
         ], 200);
     }
 
+    public function approvalAuthorityList (Request $request)
+    {
+        $company_id = $request->company_id ? $request->company_id : 0;
+        $branch_id = $request->branch_id ? $request->branch_id : 0;
+        $department_id = $request->department_id ? $request->department_id : 0;
+        $designation_id = $request->designation_id ? $request->designation_id : 0;
+
+        $approval_authority_list = EmployeeInfo::select('employee_infos.id', 'employee_infos.name', 'employee_infos.email', 'employee_infos.mobile', 'users.image', 'users.user_type')
+        ->leftJoin('users', 'users.id', 'employee_infos.user_id')
+        ->leftJoin('designations', 'designations.id', 'employee_infos.designation_id')
+        ->leftJoin('departments', 'departments.id', 'employee_infos.department_id')
+        ->when($company_id, function ($query) use ($company_id){
+            return $query->where('employee_infos.company_id', $company_id);
+        })
+        ->when($branch_id, function ($query) use ($branch_id){
+            return $query->where('employee_infos.branch_id', $branch_id);
+        })
+        ->when($department_id, function ($query) use ($department_id){
+            return $query->where('employee_infos.department_id', $department_id);
+        })
+        ->when($designation_id, function ($query) use ($designation_id){
+            return $query->where('employee_infos.designation_id', $designation_id);
+        })
+        ->where("users.user_type", 'ApprovalAuthority')
+        ->orderBy('employee_infos.name', 'ASC')
+        ->get();
+        
+        return response()->json([
+            'status' => true,
+            'message' => 'Successful',
+            'data' => $approval_authority_list
+        ], 200);
+    }
+
     public function employeeDetailsByID (Request $request)
     {
         $employee_id = $request->employee_id ? $request->employee_id : 0;

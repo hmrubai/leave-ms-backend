@@ -52,6 +52,7 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::get('admin/employee-list', [EmployeeController::class, 'employeeList']);
     Route::get('admin/employee-details-by-id/{employee_id}', [EmployeeController::class, 'employeeDetailsByID']);
     Route::get('admin/employee-filter-list', [EmployeeController::class, 'employeeFilterList']);
+    Route::get('admin/approval-authority-list', [EmployeeController::class, 'approvalAuthorityList']);
 
     Route::post('admin/update-leave-balance', [EmployeeController::class, 'addManualLeaveBalance']);
     
