@@ -484,6 +484,19 @@ class EmployeeController extends Controller
         $department_id = $request->department_id ? $request->department_id : 0;
         $designation_id = $request->designation_id ? $request->designation_id : 0;
 
+        if($company_id == 'null'){
+            $company_id = 0; 
+        }
+        if($branch_id == 'null'){
+            $branch_id = 0; 
+        }
+        if($department_id == 'null'){
+            $department_id = 0; 
+        }
+        if($designation_id == 'null'){
+            $designation_id = 0; 
+        }
+
         $employee_list = EmployeeInfo::select('employee_infos.*', 'designations.title as designation', 'departments.name as department', 'users.image', 'users.user_type')
         ->leftJoin('users', 'users.id', 'employee_infos.user_id')
         ->leftJoin('designations', 'designations.id', 'employee_infos.designation_id')
@@ -517,6 +530,19 @@ class EmployeeController extends Controller
         $branch_id = $request->branch_id ? $request->branch_id : 0;
         $department_id = $request->department_id ? $request->department_id : 0;
         $designation_id = $request->designation_id ? $request->designation_id : 0;
+
+        if($company_id == 'null'){
+            $company_id = 0; 
+        }
+        if($branch_id == 'null'){
+            $branch_id = 0; 
+        }
+        if($department_id == 'null'){
+            $department_id = 0; 
+        }
+        if($designation_id == 'null'){
+            $designation_id = 0; 
+        }
 
         $approval_authority_list = EmployeeInfo::select('employee_infos.id', 'employee_infos.name', 'employee_infos.email', 'employee_infos.mobile', 'users.image', 'users.user_type')
         ->leftJoin('users', 'users.id', 'employee_infos.user_id')

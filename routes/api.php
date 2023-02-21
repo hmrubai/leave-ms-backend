@@ -78,6 +78,8 @@ Route::middleware('auth:sanctum')->group( function () {
 
     //Approval Flow Setup
     Route::post('admin/add-approval-flow', [LeaveApprovalFlowSetupController::class, 'addApprovalFlow']);
+    Route::get('admin/approval-flow-list', [LeaveApprovalFlowSetupController::class, 'approvalFlowList']);
+    Route::post('admin/update-approval-flow', [LeaveApprovalFlowSetupController::class, 'updateApprovalFlow']);
 
     //Calender Setup
     Route::get('admin/day-type-list', [CalendarController::class, 'dayTypeList']);
