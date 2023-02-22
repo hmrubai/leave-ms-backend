@@ -116,14 +116,18 @@ class LeaveApprovalFlowSetupController extends Controller
             ], 409);
         }
 
-        $is_exist = LeaveApprovelFlowSetting::where('employee_id', $request->employee_id)->where('is_active', true)->where('id', '!=', $request->id)->first();
+        $is_exist = LeaveApprovelFlowSetting::where('employee_id', $request->employee_id)
+            ->where('approval_authority_id', $request->approval_authority_id)
+            ->where('is_active', true)
+            ->where('id', '!=', $request->id)
+            ->first();
 
         if(!empty($is_exist)){
             return response()->json([
                 'status' => false,
                 'message' => 'Approval authority already exist in flow!',
                 'data' => []
-            ], 200);
+            ], 409);
         }else{
             LeaveApprovelFlowSetting::where('id', $request->id)->update([
                 'approval_authority_id' => $request->approval_authority_id
