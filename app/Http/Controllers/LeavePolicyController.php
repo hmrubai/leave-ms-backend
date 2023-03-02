@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use Exception;
 use App\Models\User;
 use App\Models\Company;
+use App\Models\FiscalYear;
 use App\Models\LeavePolicy;
+use App\Models\LeaveBalance;
 use App\Models\EmployeeInfo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -116,6 +118,26 @@ class LeavePolicyController extends Controller
         ], 200);
     }
 
-    
+    public function userLeavePolicyList (Request $request)
+    {
+        $user_id = $request->user()->id;
 
+        $employee = EmployeeInfo::where('user_id', $user_id)->first();
+        $fiscal_year = FiscalYear::where('is_active', true)->first();
+
+        $leave_policy_ids = LeaveBalance::where("is_active", true)
+            ->where("employee_id", $employee->id)
+            ->where('fiscal_year_id', $fiscal_year->id)
+            ->pluck('leave_policy_id');
+        
+        $lp_list = LeavePolicy::where("is_active", true)->whereIn("id", $leave_policy_ids)
+        ->orderBy('leave_policies.leave_title', 'ASC')
+        ->get();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Successful',
+            'data' => $lp_list
+        ], 200);
+    }
 }

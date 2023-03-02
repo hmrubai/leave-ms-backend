@@ -12,6 +12,7 @@ use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\MasterSettingsController;
 use App\Http\Controllers\LeaveBalanceController;
 use App\Http\Controllers\LeaveApprovalFlowSetupController;
+use App\Http\Controllers\LeaveApplicationController;
 
 
 Route::post('/auth/register', [AuthController::class, 'registerUser']);
@@ -65,7 +66,8 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::post('admin/leave-policy-save-or-update', [LeavePolicyController::class, 'saveOrUpdateLeavePolicy']);
     Route::get('admin/leave-policy-list', [LeavePolicyController::class, 'leavePolicyList']);
     Route::get('admin/leave-policy-list-by-id/{company_id}', [LeavePolicyController::class, 'leavePolicyListByCompanyID']);
-    
+    Route::get('leave/user-policy-list', [LeavePolicyController::class, 'userLeavePolicyList']);
+
     //Employment Type
     Route::post('admin/employment-type-save-or-update', [MasterSettingsController::class, 'saveOrUpdateEmploymentType']);
     Route::get('admin/employment-type-list', [MasterSettingsController::class, 'employmentTypeList']);
@@ -89,6 +91,9 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::post('admin/update-calender', [CalendarController::class, 'updateCalendar']);
     Route::post('admin/generate-calender', [CalendarController::class, 'generateCalendar']);
     Route::get('admin/year-list', [CalendarController::class, 'getYearList']);
+
+    //Leave Application
+    Route::post('leave/check-validity', [LeaveApplicationController::class, 'checkLeaveValidity']);
 
     Route::get('get-profile', [AuthController::class, 'getProfile']);
     Route::post('profile-update', [AuthController::class, 'updateUser']);
