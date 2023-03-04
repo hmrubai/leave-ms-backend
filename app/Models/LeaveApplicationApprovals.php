@@ -15,7 +15,6 @@ class LeaveApplicationApprovals extends Model
         'employee_id',
         'user_id',
         'leave_policy_id',
-        'date',
         'step',
         'approval_status',
         'step_flag'

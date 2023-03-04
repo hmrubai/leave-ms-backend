@@ -93,8 +93,11 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::get('admin/year-list', [CalendarController::class, 'getYearList']);
 
     //Leave Application
+    Route::get('leave/application-list', [LeaveApplicationController::class, 'getLeaveApplication']);
     Route::post('leave/check-validity', [LeaveApplicationController::class, 'checkLeaveValidity']);
-
+    Route::post('leave/submit-application', [LeaveApplicationController::class, 'applyForALeave']);
+    Route::get('leave/application-details-by-id/{leave_application_id}', [LeaveApplicationController::class, 'getLeaveDetailsByID']);
+    
     Route::get('get-profile', [AuthController::class, 'getProfile']);
     Route::post('profile-update', [AuthController::class, 'updateUser']);
     Route::get('admin/expert-list', [AuthController::class, 'getAdminExpertList']);

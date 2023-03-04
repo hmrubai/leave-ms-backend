@@ -18,7 +18,8 @@ class LeaveApplications extends Model
         'total_applied_days',
         'is_half_day',
         'half_day',
-        'leave_status'
+        'leave_status',
+        'leave_reason'
     ];
 
     protected $casts = [
