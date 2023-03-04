@@ -62,6 +62,17 @@ class LeaveApplicationController extends Controller
             $is_valid = false;
         }
 
+        $is_exist_start = LeaveApplications::whereBetween('start_date', [$check_start_date, $check_end_date])->where('employee_id', $employee->id)->where('leave_status', '!=', "Rejected")->first();
+        $is_exist_end = LeaveApplications::whereBetween('end_date', [$check_start_date, $check_end_date])->where('employee_id', $employee->id)->where('leave_status', '!=', "Rejected")->first();
+
+        if(!empty($is_exist_start) || !empty($is_exist_end)){
+            return response()->json([
+                'status' => false,
+                'message' => 'You apleady sent an application on this date!',
+                'data' => []
+            ], 409);
+        }
+
         if(!$is_valid){
             return response()->json([
                 'status' => false,
@@ -129,9 +140,7 @@ class LeaveApplicationController extends Controller
         [
             'start_date' => 'required',
             'end_date' => 'required',
-            'leave_policy_id' => 'required',
-            // 'is_half_day' => 'required',
-            // 'half_day' => 'required'
+            'leave_policy_id' => 'required'
         ]);
 
         if($validateUser->fails()){
@@ -145,7 +154,12 @@ class LeaveApplicationController extends Controller
         $user_id = $request->user()->id;
         $leave_policy_id = $request->leave_policy_id;
         
-        $employee = EmployeeInfo::where('user_id', $user_id)->first();
+        $employee = EmployeeInfo::select('employee_infos.*', 'designations.title as designation', 'departments.name as department')
+            ->leftJoin('designations', 'designations.id', 'employee_infos.designation_id')
+            ->leftJoin('departments', 'departments.id', 'employee_infos.department_id')
+            ->where('employee_infos.user_id', $user_id)
+            ->first();
+
         $leave_policy = LeavePolicy::where('id', $leave_policy_id)->first();
         $fiscal_year = FiscalYear::where('is_active', true)->first();
 
@@ -160,6 +174,17 @@ class LeaveApplicationController extends Controller
 
         if ($check_end_date->gte($fiscal_year_end_date)) { 
             $is_valid = false;
+        }
+
+        $is_exist_start = LeaveApplications::whereBetween('start_date', [$check_start_date, $check_end_date])->where('employee_id', $employee->id)->where('leave_status', '!=', "Rejected")->first();
+        $is_exist_end = LeaveApplications::whereBetween('end_date', [$check_start_date, $check_end_date])->where('employee_id', $employee->id)->where('leave_status', '!=', "Rejected")->first();
+
+        if(!empty($is_exist_start) || !empty($is_exist_end)){
+            return response()->json([
+                'status' => false,
+                'message' => 'You apleady sent an application on this date!',
+                'data' => []
+            ], 409);
         }
 
         if(!$is_valid){
@@ -216,7 +241,14 @@ class LeaveApplicationController extends Controller
 
         $new_remaining_days = $leave_balances->remaining_days - $total_calendar_days;
 
-        $leave_flow = LeaveApprovelFlowSetting::where('employee_id', $employee->id)->where('is_active', true)->get();
+        $leave_flow = LeaveApprovelFlowSetting::select(
+            'leave_approvel_flow_settings.*',
+            'employee_infos.email as approval_email'
+        )
+        ->leftJoin('employee_infos', 'employee_infos.id', 'leave_approvel_flow_settings.approval_authority_id')
+        ->where('leave_approvel_flow_settings.employee_id', $employee->id)
+        ->where('leave_approvel_flow_settings.is_active', true)
+        ->get();
 
         $leave_application = LeaveApplications::create([
             'employee_id' => $employee->id,
@@ -241,11 +273,14 @@ class LeaveApplicationController extends Controller
             ]);
         }
 
+        $recipants_emails = [];
+
         $step_count = 1;
         foreach ($leave_flow as $flow) {
             $step_flag = "Pending";
             if($step_count == 1){
                 $step_flag = "Active";
+                array_push($recipants_emails, $flow->approval_email);
             }
 
             LeaveApplicationApprovals::create([
@@ -267,9 +302,24 @@ class LeaveApplicationController extends Controller
             "availed_days" => $leave_balances->availed_days + $total_calendar_days
         ]);
 
+        $email_object = [
+            "applicant_name" => $employee->name,
+            "applicant_email" => $employee->email,
+            "designation" => $employee->designation,
+            "department" => $employee->department,
+            "leave_type" => $leave_policy->leave_title,
+            "start_date" => date("d/m/Y", strtotime($check_start_date)),
+            "end_date" => date("d/m/Y", strtotime($check_end_date)),
+            "total_days" => $total_calendar_days
+        ];
+
+        array_push($recipants_emails, $employee->email);
+
+        app('App\Http\Controllers\NotificationController')->sendEmailForLeave($recipants_emails, $email_object);
+
         return response()->json([
             'status' => true,
-            'message' => 'Leave application submited successful1',
+            'message' => 'Leave application submited successful.',
             'data' => []
         ], 200);
     }
@@ -306,6 +356,18 @@ class LeaveApplicationController extends Controller
         ->leftJoin('leave_policies', 'leave_policies.id', 'leave_applications.leave_policy_id')
         ->first();
 
+        $leave_flow = LeaveApplicationApprovals::select(
+            'leave_application_approvals.approval_id',
+            'leave_application_approvals.step',
+            'leave_application_approvals.approval_status',
+            'leave_application_approvals.step_flag',
+            'leave_application_approvals.updated_at',
+            'employee_infos.name as authority_name'
+        )
+        ->where('leave_application_approvals.application_id', $application_id)
+        ->leftJoin('employee_infos', 'employee_infos.id', 'leave_application_approvals.approval_id')
+        ->get();
+
         $employee = EmployeeInfo::select('employee_infos.*', 'designations.title as designation', 'departments.name as department', 'users.image', 'users.user_type')
         ->leftJoin('users', 'users.id', 'employee_infos.user_id')
         ->leftJoin('designations', 'designations.id', 'employee_infos.designation_id')
@@ -314,12 +376,15 @@ class LeaveApplicationController extends Controller
         ->first();
 
         $fiscal_year = FiscalYear::where('is_active', true)->first();
-        $leave_balances = LeaveBalance::where('employee_id', $leave_details->employee_id)
-            ->where('fiscal_year_id', $fiscal_year->id)
-            ->first();
+        $leave_balances = LeaveBalance::select('leave_balances.*', 'leave_policies.leave_title', 'leave_policies.leave_short_code')
+            ->where('leave_balances.employee_id', $leave_details->employee_id)
+            ->leftJoin('leave_policies', 'leave_policies.id', 'leave_balances.leave_policy_id')
+            ->where('leave_balances.fiscal_year_id', $fiscal_year->id)
+            ->get();
 
         $response_details = [
             "leave" => $leave_details,
+            "leave_flow" => $leave_flow,
             "employee" => $employee,
             "leave_balances" => $leave_balances,
         ];

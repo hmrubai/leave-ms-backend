@@ -13,6 +13,7 @@ use App\Http\Controllers\MasterSettingsController;
 use App\Http\Controllers\LeaveBalanceController;
 use App\Http\Controllers\LeaveApprovalFlowSetupController;
 use App\Http\Controllers\LeaveApplicationController;
+use App\Http\Controllers\NotificationController;
 
 
 Route::post('/auth/register', [AuthController::class, 'registerUser']);
@@ -98,6 +99,9 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::post('leave/submit-application', [LeaveApplicationController::class, 'applyForALeave']);
     Route::get('leave/application-details-by-id/{leave_application_id}', [LeaveApplicationController::class, 'getLeaveDetailsByID']);
     
+    //Email Sending
+    Route::post('notification/send-email', [NotificationController::class, 'checkEmailSending']);
+
     Route::get('get-profile', [AuthController::class, 'getProfile']);
     Route::post('profile-update', [AuthController::class, 'updateUser']);
     Route::get('admin/expert-list', [AuthController::class, 'getAdminExpertList']);
