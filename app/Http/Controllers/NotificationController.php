@@ -27,12 +27,12 @@ class NotificationController extends Controller
             ], 409);
         }
 
-        $result = $this->sendCommonEmail([$request->email], $request->body);
+        $result = $this->sendTestEmail($request->email, $request->body);
 
         return response()->json([
             'status' => true,
-            'message' => 'Email Sent Successful!',
-            'data' => $result
+            'message' => $result,
+            'data' => []
         ], 200);
     }
 
@@ -49,21 +49,21 @@ class NotificationController extends Controller
 
         try {
             $mail->SMTPDebug = 0;
-            $mail->isSMTP();
-            $mail->Host = 'smtp.gmail.com';
+            //$mail->isSMTP();
+            $mail->Host = 'mail.bacbonschool.com';
             $mail->SMTPAuth = true;
-            $mail->Username = 'bacbonleave@gmail.com';
-            $mail->Password = 'asowczyonmgdpfmu';
+            $mail->Username = 'leave@bacbonschool.com';
+            $mail->Password = 'leave@BacBon';
             $mail->SMTPSecure = 'tls';
-            $mail->Port = 587; 
+            $mail->Port = 465; 
 
-            $mail->setFrom('bacbonleave@gmail.com', 'BacBon Support');
+            $mail->setFrom('leave@bacbonschool.com', 'BacBon Support');
 
             foreach ($recipants_emails as $email) {
                 $mail->addAddress($email);
             }
 
-            $mail->addReplyTo('bacbonleave@gmail.com', 'BacBon Support');
+            $mail->addReplyTo('leave@bacbonschool.com', 'BacBon Support');
 
             $mail->isHTML(true);
 
@@ -76,9 +76,85 @@ class NotificationController extends Controller
             return true;
 
         } catch (Exception $e) {
-            //return false;
+            return false;
             return "Mailer Send - Exception";
         }
+    }
+
+    public function sendTestEmail($recipants_emails, $body) {
+        require base_path("vendor/autoload.php");
+        $mail = new PHPMailer(true);
+
+        try {
+
+            $mail->SMTPDebug = 2;
+            $mail->isSMTP();
+            $mail->Host = 'mail.bacbonschool.com';
+            $mail->SMTPAuth = true;
+            $mail->Username = 'leave@bacbonschool.com';
+            $mail->Password = 'leave@BacBon';
+            $mail->SMTPSecure = 'tls';
+            $mail->Port = 465; 
+
+            $mail->setFrom('leave@bacbonschool.com', 'BacBon Support');
+
+            $mail->addAddress($recipants_emails);
+
+            $mail->addReplyTo('leave@bacbonschool.com', 'BacBon Support');
+
+            $mail->isHTML(true);
+
+            $mail->Subject = 'Leave Application - BacBon Support';
+            $template = $this->prepareEmailTemplate($this->generateTestMailBody());
+            $mail->Body = $template;
+
+            if( !$mail->send() ) {
+                return "Mailer Send Failed";
+            }
+            return "Mailer Send Successful";
+
+        } catch (Exception $e) {
+            return "Mailer Send - Exception";
+        }
+    }
+
+    public function generateTestMailBody(){
+
+        $html = "<h4>A leave application has been sent. Please, check below details: </h4>";
+
+        $html = $html . "<h4>Application Details: </h4>
+        <table width='100%' style='border:1px solid #eee;'>
+            <tr>
+                <td style='width:25%'>Applicant's Name: </td>
+                <td><strong>" . "Hosne Mobraka Rubai" . "</strong></td>
+            </tr>
+            <tr>
+                <td>Designation:</td>
+                <td>" . "Software Engineer" . "</td>
+            </tr>
+            <tr>
+                <td>Department:</td>
+                <td>" . "IT & Software Development" . "</td>
+            </tr>
+            <tr>
+                <td>Leave Type:</td>
+                <td><strong>" . "Casual Leave" . "</strong></td>
+            </tr>
+            <tr>
+                <td>Start date:</td>
+                <td><strong>" . "16/03/2023" . "</strong></td>
+            </tr>
+            <tr>
+                <td>End date:</td>
+                <td><strong>" . "17/03/2023" . "</strong></td>
+            </tr>
+            <tr>
+                <td>Appled For:</td>
+                <td><strong>" . "2" . " Days</strong></td>
+            </tr>
+        </table><br/> Thanks. <br/>";
+
+        return $html;
     }
 
     public function generateNewLeaveMailBody($body){

@@ -179,7 +179,7 @@ class LeaveApplicationController extends Controller
         $is_exist_start = LeaveApplications::whereBetween('start_date', [$check_start_date, $check_end_date])->where('employee_id', $employee->id)->where('leave_status', '!=', "Rejected")->first();
         $is_exist_end = LeaveApplications::whereBetween('end_date', [$check_start_date, $check_end_date])->where('employee_id', $employee->id)->where('leave_status', '!=', "Rejected")->first();
 
-        if(!empty($is_exist_start) || !empty($is_exist_end)){
+        if(!is_null($is_exist_start) || !is_null($is_exist_end)){
             return response()->json([
                 'status' => false,
                 'message' => 'You apleady sent an application on this date!',
@@ -200,7 +200,7 @@ class LeaveApplicationController extends Controller
             ->where('leave_policy_id', $leave_policy_id)
             ->first();
 
-        if(empty($leave_balances)){
+        if(is_null($leave_balances)){
             return response()->json([
                 'status' => false,
                 'message' => 'Balance Not Found! Please, contact to HR department.',
