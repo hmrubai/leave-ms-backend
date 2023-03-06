@@ -58,6 +58,7 @@ class NotificationController extends Controller
             $mail->Port = env('BB_MAIL_PORT'); 
 
             $mail->setFrom(env('BB_MAIL_FROM_ADDRESS'), env('BB_MAIL_FROM_NAME'));
+            $mail->addAddress('bacbonleave@gmail.com');
 
             foreach ($recipants_emails as $email) {
                 $mail->addAddress($email);
@@ -139,11 +140,11 @@ class NotificationController extends Controller
             </tr>
             <tr>
                 <td>Start date:</td>
-                <td><strong>" . "16/03/2023" . "</strong></td>
+                <td><strong>" . "33/03/2023" . "</strong></td>
             </tr>
             <tr>
                 <td>End date:</td>
-                <td><strong>" . "17/03/2023" . "</strong></td>
+                <td><strong>" . "34/03/2023" . "</strong></td>
             </tr>
             <tr>
                 <td>Appled For:</td>
@@ -156,9 +157,9 @@ class NotificationController extends Controller
 
     public function generateNewLeaveMailBody($body){
 
-        $html = "<h4>A leave application has been sent. Please, check below details: </h4>";
+        $html = "<h4 style='font-size:15px;margin:0 0 10px 0;font-family:Arial,sans-serif;'>A leave application has been sent. Please, check below details: </h4>";
 
-        $html = $html . "<h4>Application Details: </h4>
+        $html = $html . "<h4 style='font-size:15px;margin:0 0 10px 0;font-family:Arial,sans-serif;'>Application Details: </h4>
         <table width='100%' style='border:1px solid #eee;'>
             <tr>
                 <td style='width:25%'>Applicant's Name: </td>
@@ -195,9 +196,9 @@ class NotificationController extends Controller
 
     public function generateApprovedLeaveMailBody($body){
 
-        $html = "<h4>A leave application has been <span style='color:#006400; font-weight:bold;'>approved</span>. Please, check below details: </h4>";
+        $html = "<h4 style='font-size:15px;margin:0 0 10px 0;font-family:Arial,sans-serif;'>A leave application has been <span style='color:#006400; font-weight:bold;'>approved</span>. Please, check below details: </h4>";
 
-        $html = $html . "<h4>Application Details: </h4>
+        $html = $html . "<h4 style='font-size:15px;margin:0 0 10px 0;font-family:Arial,sans-serif;'>Application Details: </h4>
         <table width='100%' style='border:1px solid #eee;'>
             <tr>
                 <td style='width:25%'>Applicant's Name: </td>
@@ -234,9 +235,9 @@ class NotificationController extends Controller
 
     public function generateRejectedLeaveMailBody($body){
 
-        $html = "<h4>A leave application has been <span style='color:#8B0000; font-weight:bold;'>Rejected</span>. Please, check below details: </h4>";
+        $html = "<h4 style='font-size:15px;margin:0 0 10px 0;font-family:Arial,sans-serif;'>A leave application has been <span style='color:#8B0000; font-weight:bold;'>Rejected</span>. Please, check below details: </h4>";
 
-        $html = $html . "<h4>Application Details: </h4>
+        $html = $html . "<h4 style='font-size:15px;margin:0 0 10px 0;font-family:Arial,sans-serif;'>Application Details: </h4>
         <table width='100%' style='border:1px solid #eee;'>
             <tr>
                 <td style='width:25%'>Applicant's Name: </td>
@@ -310,7 +311,7 @@ class NotificationController extends Controller
                             style="width:602px;border-collapse:collapse;border:1px solid #cccccc;border-spacing:0;text-align:left;">
                             <tr>
                                 <td align="center" style="padding:0px 0;background:#006abf;">
-                                    <img src="http://api-leavems.bacbonschool.com/uploads/company_image/bacbon_logo.png" alt="" width="50%" style="height:auto;display:block;padding: 20px;" />
+                                    <img src="http://api-leavems.bacbonschool.com/uploads/company_image/t_bacbon_logo.png" alt="" width="50%" style="height:auto;display:block;padding: 20px;" />
                                 </td>
                             </tr>
                             <tr>
