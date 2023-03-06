@@ -50,20 +50,20 @@ class NotificationController extends Controller
         try {
             $mail->SMTPDebug = 0;
             //$mail->isSMTP();
-            $mail->Host = 'mail.bacbonschool.com';
+            $mail->Host = env('BB_MAIL_HOST');
             $mail->SMTPAuth = true;
-            $mail->Username = 'leave@bacbonschool.com';
-            $mail->Password = 'leave@BacBon';
+            $mail->Username = env('BB_MAIL_USERNAME');
+            $mail->Password = env('BB_MAIL_PASSWORD');
             $mail->SMTPSecure = 'tls';
-            $mail->Port = 465; 
+            $mail->Port = env('BB_MAIL_PORT'); 
 
-            $mail->setFrom('leave@bacbonschool.com', 'BacBon Support');
+            $mail->setFrom(env('BB_MAIL_FROM_ADDRESS'), env('BB_MAIL_FROM_NAME'));
 
             foreach ($recipants_emails as $email) {
                 $mail->addAddress($email);
             }
 
-            $mail->addReplyTo('leave@bacbonschool.com', 'BacBon Support');
+            $mail->addReplyTo(env('BB_MAIL_FROM_ADDRESS'), env('BB_MAIL_FROM_NAME'));
 
             $mail->isHTML(true);
 
@@ -86,24 +86,21 @@ class NotificationController extends Controller
         $mail = new PHPMailer(true);
 
         try {
-
             $mail->SMTPDebug = 2;
-            $mail->isSMTP();
-            $mail->Host = 'mail.bacbonschool.com';
+            $mail->Host = env('BB_MAIL_HOST');
             $mail->SMTPAuth = true;
-            $mail->Username = 'leave@bacbonschool.com';
-            $mail->Password = 'leave@BacBon';
+            $mail->Username = env('BB_MAIL_USERNAME');
+            $mail->Password = env('BB_MAIL_PASSWORD');
             $mail->SMTPSecure = 'tls';
-            $mail->Port = 465; 
+            $mail->Port = env('BB_MAIL_PORT'); 
 
-            $mail->setFrom('leave@bacbonschool.com', 'BacBon Support');
+            $mail->setFrom(env('BB_MAIL_FROM_ADDRESS'), env('BB_MAIL_FROM_NAME'));
 
             $mail->addAddress($recipants_emails);
 
-            $mail->addReplyTo('leave@bacbonschool.com', 'BacBon Support');
+            $mail->addReplyTo(env('BB_MAIL_FROM_ADDRESS'), env('BB_MAIL_FROM_NAME'));
 
             $mail->isHTML(true);
-
             $mail->Subject = 'Leave Application - BacBon Support';
             $template = $this->prepareEmailTemplate($this->generateTestMailBody());
             $mail->Body = $template;
