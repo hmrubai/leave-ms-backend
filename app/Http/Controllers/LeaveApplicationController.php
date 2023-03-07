@@ -94,6 +94,23 @@ class LeaveApplicationController extends Controller
             ], 409);
         }
 
+        $leave_flow = LeaveApprovelFlowSetting::select(
+            'leave_approvel_flow_settings.*',
+            'employee_infos.email as approval_email'
+        )
+        ->leftJoin('employee_infos', 'employee_infos.id', 'leave_approvel_flow_settings.approval_authority_id')
+        ->where('leave_approvel_flow_settings.employee_id', $employee->id)
+        ->where('leave_approvel_flow_settings.is_active', true)
+        ->get();
+
+        if(!sizeof($leave_flow)){
+            return response()->json([
+                'status' => false,
+                'message' => 'The approval flow setup is not completed yet! Please, contact to HR department.',
+                'data' => []
+            ], 409);
+        }
+
         if(!$leave_policy->is_holiday_deduct){
             $day_type = DayType::where('title', "Work Day")->first();
             $calendar_days = Calendar::where('day_type_id', $day_type->id)
@@ -250,6 +267,14 @@ class LeaveApplicationController extends Controller
         ->where('leave_approvel_flow_settings.is_active', true)
         ->get();
 
+        if(!sizeof($leave_flow)){
+            return response()->json([
+                'status' => false,
+                'message' => 'The approval flow setup is not completed yet! Please, contact to HR department.',
+                'data' => []
+            ], 409);
+        }
+
         $leave_application = LeaveApplications::create([
             'employee_id' => $employee->id,
             'user_id' => $user_id,
@@ -344,6 +369,31 @@ class LeaveApplicationController extends Controller
         ], 200);
     }
 
+    public function getApprovalAuthorityPendingLeaveList(Request $request){
+        $user_id = $request->user()->id;
+        $employee = EmployeeInfo::where('user_id', $user_id)->first();
+
+        $leave_ids = LeaveApplicationApprovals::select('application_id')
+            ->where('approval_id', $employee->id)
+            ->whereIn('step_flag', ['Active'])
+            ->distinct()->pluck('application_id');
+
+        $leave_list = LeaveApplications::select(
+            'leave_applications.*',
+            'leave_policies.leave_title'
+        )
+        ->leftJoin('leave_policies', 'leave_policies.id', 'leave_applications.leave_policy_id')
+        ->whereIn('leave_applications.id', $leave_ids)
+        ->orderBy('leave_applications.id', "DESC")
+        ->get();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Successful1',
+            'data' => $leave_list
+        ], 200);
+    }
+
     public function getLeaveDetailsByID(Request $request)
     {
         $application_id = $request->leave_application_id ? $request->leave_application_id : 0;
@@ -362,7 +412,8 @@ class LeaveApplicationController extends Controller
             'leave_application_approvals.approval_status',
             'leave_application_approvals.step_flag',
             'leave_application_approvals.updated_at',
-            'employee_infos.name as authority_name'
+            'employee_infos.name as authority_name',
+            'employee_infos.user_id as approval_user_id'
         )
         ->where('leave_application_approvals.application_id', $application_id)
         ->leftJoin('employee_infos', 'employee_infos.id', 'leave_application_approvals.approval_id')

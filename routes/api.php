@@ -99,6 +99,9 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::post('leave/submit-application', [LeaveApplicationController::class, 'applyForALeave']);
     Route::get('leave/application-details-by-id/{leave_application_id}', [LeaveApplicationController::class, 'getLeaveDetailsByID']);
     
+    //Approval Authority Leave Application
+    Route::get('approval/leave/application-list', [LeaveApplicationController::class, 'getApprovalAuthorityPendingLeaveList']);
+    
     //Email Sending
     Route::post('notification/send-email', [NotificationController::class, 'checkEmailSending']);
 
