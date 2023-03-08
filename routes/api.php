@@ -105,6 +105,7 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::get('approval/pending/application-list', [LeaveApplicationController::class, 'getApprovalAuthorityPendingLeaveList']);
     Route::get('approval/approved/application-list', [LeaveApplicationController::class, 'getApprovalAuthorityApprovedLeaveList']);
     Route::post('leave/approve-leave', [LeaveApplicationController::class, 'approveLeave']);
+    Route::post('leave/reject-leave', [LeaveApplicationController::class, 'rejectLeave']);
 
     //Dashboard
     Route::get('dashboard-summary', [DashboardController::class, 'dashboardSummary']);

@@ -477,11 +477,7 @@ class LeaveApplicationController extends Controller
     {
         $application_id = $request->leave_application_id ? $request->leave_application_id : 0;
         $user_id = $request->user()->id;
-        $employee = EmployeeInfo::select('employee_infos.*', 'designations.title as designation', 'departments.name as department')
-            ->leftJoin('designations', 'designations.id', 'employee_infos.designation_id')
-            ->leftJoin('departments', 'departments.id', 'employee_infos.department_id')
-            ->where('employee_infos.user_id', $user_id)
-            ->first();
+        $authority = EmployeeInfo::where('employee_infos.user_id', $user_id)->first();
 
         if(!$application_id){
             return response()->json([
@@ -491,9 +487,14 @@ class LeaveApplicationController extends Controller
             ], 409);
         }
         $application = LeaveApplications::where('id', $application_id)->first();
+        $employee = EmployeeInfo::select('employee_infos.*', 'designations.title as designation', 'departments.name as department')
+            ->leftJoin('designations', 'designations.id', 'employee_infos.designation_id')
+            ->leftJoin('departments', 'departments.id', 'employee_infos.department_id')
+            ->where('employee_infos.id', $application->employee_id)
+            ->first();
         $leave_policy = LeavePolicy::where('id', $application->leave_policy_id)->first();
 
-        $leave_approval_step = LeaveApplicationApprovals::where('approval_id', $employee->id)
+        $leave_approval_step = LeaveApplicationApprovals::where('approval_id', $authority->id)
             ->where('application_id', $application_id)
             ->where('step_flag', "Active")
             ->first();
@@ -536,8 +537,8 @@ class LeaveApplicationController extends Controller
             app('App\Http\Controllers\NotificationController')->sendApprovedEmailForLeave($recipants_emails, $email_object);
 
         }else{
-            $authority = EmployeeInfo::where('id', $approval_next_step->approval_id)->first();
-            array_push($recipants_emails, $authority->email);
+            $next_authority = EmployeeInfo::where('employee_infos.id', $approval_next_step->approval_id)->first();
+            array_push($recipants_emails, $next_authority->email);
             LeaveApplicationApprovals::where('id', $approval_next_step->id)->update([
                 "step_flag" => "Active"
             ]);
@@ -548,6 +549,92 @@ class LeaveApplicationController extends Controller
             'status' => true,
             'message' => 'Leave application has been approved successful!',
             'data' => $leave_approval_step
+        ], 200);
+    }
+
+    public function rejectLeave(Request $request)
+    {
+        $application_id = $request->leave_application_id ? $request->leave_application_id : 0;
+        $user_id = $request->user()->id;
+
+        if(!$application_id){
+            return response()->json([
+                'status' => false,
+                'message' => 'Please, attach Application ID',
+                'data' => []
+            ], 409);
+        }
+
+        $application = LeaveApplications::where('id', $application_id)->first();
+        $authority = EmployeeInfo::where('employee_infos.user_id', $user_id)->first();
+        $employee = EmployeeInfo::select('employee_infos.*', 'designations.title as designation', 'departments.name as department')
+            ->leftJoin('designations', 'designations.id', 'employee_infos.designation_id')
+            ->leftJoin('departments', 'departments.id', 'employee_infos.department_id')
+            ->where('employee_infos.id', $application->employee_id)
+            ->first();
+
+        $leave_policy = LeavePolicy::where('id', $application->leave_policy_id)->first();
+
+        $leave_approval_step = LeaveApplicationApprovals::where('approval_id', $authority->id)
+            ->where('application_id', $application_id)
+            ->where('step_flag', "Active")
+            ->first();
+
+        if(is_null($leave_approval_step)){
+            return response()->json([
+                'status' => true,
+                'message' => 'Leave application is already modified!',
+                'data' => []
+            ], 409);
+        }
+
+        $leave_approval_step->update([
+            "step_flag" => "Completed",
+            "approval_status" => "Rejected"
+        ]);
+
+        $application->update([
+            "leave_status" => "Rejected"
+        ]);
+
+        $recipants_emails = [];
+        $email_object = [
+            "applicant_name" => $employee->name,
+            "applicant_email" => $employee->email,
+            "designation" => $employee->designation,
+            "department" => $employee->department,
+            "leave_type" => $leave_policy->leave_title,
+            "start_date" => date("d/m/Y", strtotime($application->start_date)),
+            "end_date" => date("d/m/Y", strtotime($application->end_date)),
+            "total_days" => $application->total_applied_days
+        ];
+
+        $fiscal_year_id = 0;
+        $check_start_date = Carbon::parse($application->start_date);
+        $is_exist_start = FiscalYear::where('start_date', '<=', $check_start_date)->where('end_date', '>=', $check_start_date)->first();
+
+        if(!is_null($is_exist_start)){
+            if(!is_null($is_exist_start)){
+                $fiscal_year_id = $is_exist_start->id; 
+            }
+        }
+
+        $balance = LeaveBalance::where('employee_id', $employee->id)->where('leave_policy_id', $application->leave_policy_id)->where('fiscal_year_id', $fiscal_year_id)->first();
+
+        if(!is_null($balance)){
+            $balance->update([
+                'availed_days' => $balance->availed_days - $application->total_applied_days,
+                'remaining_days' => $balance->remaining_days + $application->total_applied_days
+            ]);
+        }
+
+        array_push($recipants_emails, $employee->email);
+        app('App\Http\Controllers\NotificationController')->sendRejectEmailForLeave($recipants_emails, $email_object);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Leave application has been rejected!',
+            'data' => []
         ], 200);
     }
 }
