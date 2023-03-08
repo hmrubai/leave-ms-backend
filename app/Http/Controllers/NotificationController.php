@@ -43,6 +43,13 @@ class NotificationController extends Controller
         return true;
     }
 
+    public function sendApprovedEmailForLeave($recipants_emails, $body)
+    {
+        $email_body = $this->generateApprovedLeaveMailBody($body);
+        $this->sendCommonEmail($recipants_emails, $email_body);
+        return true;
+    }
+
     public function sendCommonEmail($recipants_emails, $body) {
         require base_path("vendor/autoload.php");
         $mail = new PHPMailer(true);

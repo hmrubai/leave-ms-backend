@@ -477,7 +477,11 @@ class LeaveApplicationController extends Controller
     {
         $application_id = $request->leave_application_id ? $request->leave_application_id : 0;
         $user_id = $request->user()->id;
-        $employee = EmployeeInfo::where('user_id', $user_id)->first();
+        $employee = EmployeeInfo::select('employee_infos.*', 'designations.title as designation', 'departments.name as department')
+            ->leftJoin('designations', 'designations.id', 'employee_infos.designation_id')
+            ->leftJoin('departments', 'departments.id', 'employee_infos.department_id')
+            ->where('employee_infos.user_id', $user_id)
+            ->first();
 
         if(!$application_id){
             return response()->json([
@@ -486,6 +490,8 @@ class LeaveApplicationController extends Controller
                 'data' => []
             ], 409);
         }
+        $application = LeaveApplications::where('id', $application_id)->first();
+        $leave_policy = LeavePolicy::where('id', $application->leave_policy_id)->first();
 
         $leave_approval_step = LeaveApplicationApprovals::where('approval_id', $employee->id)
             ->where('application_id', $application_id)
@@ -509,20 +515,33 @@ class LeaveApplicationController extends Controller
         ]);
 
         $approval_next_step = LeaveApplicationApprovals::where('application_id', $application_id)->where('step', $next_step)->first();
+
+        $recipants_emails = [];
+        $email_object = [
+            "applicant_name" => $employee->name,
+            "applicant_email" => $employee->email,
+            "designation" => $employee->designation,
+            "department" => $employee->department,
+            "leave_type" => $leave_policy->leave_title,
+            "start_date" => date("d/m/Y", strtotime($application->start_date)),
+            "end_date" => date("d/m/Y", strtotime($application->end_date)),
+            "total_days" => $application->total_applied_days
+        ];
         
         if(is_null($approval_next_step)){
+            array_push($recipants_emails, $employee->email);
             LeaveApplications::where('id', $application_id)->update([
                 "leave_status" => "Approved"
             ]);
-
-            //Send Email to employee
+            app('App\Http\Controllers\NotificationController')->sendApprovedEmailForLeave($recipants_emails, $email_object);
 
         }else{
+            $authority = EmployeeInfo::where('id', $approval_next_step->approval_id)->first();
+            array_push($recipants_emails, $authority->email);
             LeaveApplicationApprovals::where('id', $approval_next_step->id)->update([
                 "step_flag" => "Active"
             ]);
-
-            // Send email to next flow
+            app('App\Http\Controllers\NotificationController')->sendEmailForLeave($recipants_emails, $email_object);
         }
 
         return response()->json([

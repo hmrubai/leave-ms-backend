@@ -14,6 +14,7 @@ use App\Http\Controllers\LeaveBalanceController;
 use App\Http\Controllers\LeaveApprovalFlowSetupController;
 use App\Http\Controllers\LeaveApplicationController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\DashboardController;
 
 
 Route::post('/auth/register', [AuthController::class, 'registerUser']);
@@ -78,6 +79,7 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::get('admin/leave-setting-list/{employment_type_id}', [LeaveBalanceController::class, 'leaveBalanceSettingList']);
     Route::get('admin/leave-balance-list/{employee_id}', [LeaveBalanceController::class, 'employeeLeaveBalanceList']);
     Route::post('admin/leave-balance-update', [LeaveBalanceController::class, 'updateEmployeeLeaveBalance']);
+    Route::get('my/leave-balance-list', [LeaveBalanceController::class, 'myLeaveBalanceList']);
 
     //Approval Flow Setup
     Route::post('admin/add-approval-flow', [LeaveApprovalFlowSetupController::class, 'addApprovalFlow']);
@@ -103,6 +105,9 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::get('approval/pending/application-list', [LeaveApplicationController::class, 'getApprovalAuthorityPendingLeaveList']);
     Route::get('approval/approved/application-list', [LeaveApplicationController::class, 'getApprovalAuthorityApprovedLeaveList']);
     Route::post('leave/approve-leave', [LeaveApplicationController::class, 'approveLeave']);
+
+    //Dashboard
+    Route::get('dashboard-summary', [DashboardController::class, 'dashboardSummary']);
     
     //Email Sending
     Route::post('notification/send-email', [NotificationController::class, 'checkEmailSending']);
