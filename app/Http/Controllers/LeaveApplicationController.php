@@ -394,6 +394,32 @@ class LeaveApplicationController extends Controller
         ], 200);
     }
 
+    public function getApprovalAuthorityApprovedLeaveList(Request $request){
+        $user_id = $request->user()->id;
+        $employee = EmployeeInfo::where('user_id', $user_id)->first();
+
+        $leave_ids = LeaveApplicationApprovals::select('application_id')
+            ->where('approval_id', $employee->id)
+            ->where('approval_status', 'Approved')
+            ->whereIn('step_flag', ['Completed'])
+            ->distinct()->pluck('application_id');
+
+        $leave_list = LeaveApplications::select(
+            'leave_applications.*',
+            'leave_policies.leave_title'
+        )
+        ->leftJoin('leave_policies', 'leave_policies.id', 'leave_applications.leave_policy_id')
+        ->whereIn('leave_applications.id', $leave_ids)
+        ->orderBy('leave_applications.id', "DESC")
+        ->get();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Successful1',
+            'data' => $leave_list
+        ], 200);
+    }
+
     public function getLeaveDetailsByID(Request $request)
     {
         $application_id = $request->leave_application_id ? $request->leave_application_id : 0;
@@ -444,6 +470,65 @@ class LeaveApplicationController extends Controller
             'status' => true,
             'message' => 'Successful1',
             'data' => $response_details
+        ], 200);
+    }
+
+    public function approveLeave(Request $request)
+    {
+        $application_id = $request->leave_application_id ? $request->leave_application_id : 0;
+        $user_id = $request->user()->id;
+        $employee = EmployeeInfo::where('user_id', $user_id)->first();
+
+        if(!$application_id){
+            return response()->json([
+                'status' => false,
+                'message' => 'Please, attach Application ID',
+                'data' => []
+            ], 409);
+        }
+
+        $leave_approval_step = LeaveApplicationApprovals::where('approval_id', $employee->id)
+            ->where('application_id', $application_id)
+            ->where('step_flag', "Active")
+            ->first();
+
+        if(is_null($leave_approval_step)){
+            return response()->json([
+                'status' => true,
+                'message' => 'Leave application is already modified!',
+                'data' => []
+            ], 409);
+        }
+
+        $active_step = $leave_approval_step->step ? $leave_approval_step->step : 0;
+        $next_step = $active_step + 1;
+
+        $leave_approval_step->update([
+            "step_flag" => "Completed",
+            "approval_status" => "Approved"
+        ]);
+
+        $approval_next_step = LeaveApplicationApprovals::where('application_id', $application_id)->where('step', $next_step)->first();
+        
+        if(is_null($approval_next_step)){
+            LeaveApplications::where('id', $application_id)->update([
+                "leave_status" => "Approved"
+            ]);
+
+            //Send Email to employee
+
+        }else{
+            LeaveApplicationApprovals::where('id', $approval_next_step->id)->update([
+                "step_flag" => "Active"
+            ]);
+
+            // Send email to next flow
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Leave application has been approved successful!',
+            'data' => $leave_approval_step
         ], 200);
     }
 }
