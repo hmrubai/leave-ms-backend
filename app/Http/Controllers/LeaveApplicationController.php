@@ -285,6 +285,7 @@ class LeaveApplicationController extends Controller
             'is_half_day' => $request->is_half_day,
             'half_day' => $request->half_day,
             'leave_reason' => $request->reason,
+            'responsibility_carried_by' => $request->responsibility_carried_by,
             'leave_status' => "Pending"
         ]);
 
@@ -340,7 +341,7 @@ class LeaveApplicationController extends Controller
 
         array_push($recipants_emails, $employee->email);
 
-        app('App\Http\Controllers\NotificationController')->sendEmailForLeave($recipants_emails, $email_object);
+        app('App\Http\Controllers\NotificationController')->sendEmailForLeave($recipants_emails, $email_object, $employee->name);
 
         return response()->json([
             'status' => true,
@@ -534,7 +535,7 @@ class LeaveApplicationController extends Controller
             LeaveApplications::where('id', $application_id)->update([
                 "leave_status" => "Approved"
             ]);
-            app('App\Http\Controllers\NotificationController')->sendApprovedEmailForLeave($recipants_emails, $email_object);
+            app('App\Http\Controllers\NotificationController')->sendApprovedEmailForLeave($recipants_emails, $email_object, $employee->name);
 
         }else{
             $next_authority = EmployeeInfo::where('employee_infos.id', $approval_next_step->approval_id)->first();
@@ -542,7 +543,7 @@ class LeaveApplicationController extends Controller
             LeaveApplicationApprovals::where('id', $approval_next_step->id)->update([
                 "step_flag" => "Active"
             ]);
-            app('App\Http\Controllers\NotificationController')->sendEmailForLeave($recipants_emails, $email_object);
+            app('App\Http\Controllers\NotificationController')->sendEmailForLeave($recipants_emails, $email_object, $employee->name);
         }
 
         return response()->json([
@@ -629,7 +630,7 @@ class LeaveApplicationController extends Controller
         }
 
         array_push($recipants_emails, $employee->email);
-        app('App\Http\Controllers\NotificationController')->sendRejectEmailForLeave($recipants_emails, $email_object);
+        app('App\Http\Controllers\NotificationController')->sendRejectEmailForLeave($recipants_emails, $email_object, $employee->name);
 
         return response()->json([
             'status' => true,

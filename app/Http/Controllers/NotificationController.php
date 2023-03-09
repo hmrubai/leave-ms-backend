@@ -16,7 +16,8 @@ class NotificationController extends Controller
         $validateUser = Validator::make($request->all(), 
         [
             'email' => 'required',
-            'body' => 'required'
+            'body' => 'required',
+            'title' => 'required'
         ]);
 
         if($validateUser->fails()){
@@ -27,7 +28,7 @@ class NotificationController extends Controller
             ], 409);
         }
 
-        $result = $this->sendTestEmail($request->email, $request->body);
+        $result = $this->sendTestEmail($request->email, $request->body, $request->title);
 
         return response()->json([
             'status' => true,
@@ -36,28 +37,28 @@ class NotificationController extends Controller
         ], 200);
     }
 
-    public function sendEmailForLeave($recipants_emails, $body)
+    public function sendEmailForLeave($recipants_emails, $body, $title = "")
     {
         $email_body = $this->generateNewLeaveMailBody($body);
-        $this->sendCommonEmail($recipants_emails, $email_body);
+        $this->sendCommonEmail($recipants_emails, $email_body, $title);
         return true;
     }
 
-    public function sendApprovedEmailForLeave($recipants_emails, $body)
+    public function sendApprovedEmailForLeave($recipants_emails, $body, $title = "")
     {
         $email_body = $this->generateApprovedLeaveMailBody($body);
-        $this->sendCommonEmail($recipants_emails, $email_body);
+        $this->sendCommonEmail($recipants_emails, $email_body, $title);
         return true;
     }
 
-    public function sendRejectEmailForLeave($recipants_emails, $body)
+    public function sendRejectEmailForLeave($recipants_emails, $body, $title = "")
     {
         $email_body = $this->generateRejectedLeaveMailBody($body);
-        $this->sendCommonEmail($recipants_emails, $email_body);
+        $this->sendCommonEmail($recipants_emails, $email_body, $title);
         return true;
     }
 
-    public function sendCommonEmail($recipants_emails, $body) {
+    public function sendCommonEmail($recipants_emails, $body, $title = "") {
         require base_path("vendor/autoload.php");
         $mail = new PHPMailer(true);
 
@@ -82,7 +83,7 @@ class NotificationController extends Controller
 
             $mail->isHTML(true);
 
-            $mail->Subject = 'Leave Application - BacBon Support';
+            $mail->Subject = 'Leave Application - ' . $title;
             $mail->Body    = $this->prepareEmailTemplate($body);
 
             if( !$mail->send() ) {
@@ -96,7 +97,7 @@ class NotificationController extends Controller
         }
     }
 
-    public function sendTestEmail($recipants_emails, $body) {
+    public function sendTestEmail($recipants_emails, $body, $title = "") {
         require base_path("vendor/autoload.php");
         $mail = new PHPMailer(true);
 
@@ -116,7 +117,7 @@ class NotificationController extends Controller
             $mail->addReplyTo(env('BB_MAIL_FROM_ADDRESS'), env('BB_MAIL_FROM_NAME'));
 
             $mail->isHTML(true);
-            $mail->Subject = 'Leave Application - BacBon Support';
+            $mail->Subject = 'Leave Application - ' . $title;
             $template = $this->prepareEmailTemplate($this->generateTestMailBody());
             $mail->Body = $template;
 
@@ -325,7 +326,7 @@ class NotificationController extends Controller
                             style="width:602px;border-collapse:collapse;border:1px solid #cccccc;border-spacing:0;text-align:left;">
                             <tr>
                                 <td align="center" style="padding:0px 0;background:#006abf;">
-                                    <img src="http://api-leavems.bacbonschool.com/uploads/company_image/t_bacbon_logo.png" alt="" width="50%" style="height:auto;display:block;padding: 20px;" />
+                                    <img src="http://api-leavems.bacbonschool.com/uploads/company_image/bacbonltd-logo.png" alt="" width="50%" style="height:auto;display:block;padding: 30px;" />
                                 </td>
                             </tr>
                             <tr>

@@ -18,6 +18,7 @@ class LeaveApplications extends Model
         'total_applied_days',
         'is_half_day',
         'half_day',
+        'responsibility_carried_by',
         'leave_status',
         'leave_reason'
     ];
