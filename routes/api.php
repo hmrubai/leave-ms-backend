@@ -124,7 +124,7 @@ Route::middleware('auth:sanctum')->group( function () {
     
 });
 
-Route::get('admin/import-employee', [EmployeeController::class, 'import']);
+// Route::get('admin/import-employee', [EmployeeController::class, 'import']);
 // Route::post('trancate-data', [MasterSettingsController::class, 'trancateData']);
 
 Route::any('{url}', function(){
