@@ -80,6 +80,7 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::get('admin/leave-balance-list/{employee_id}', [LeaveBalanceController::class, 'employeeLeaveBalanceList']);
     Route::post('admin/leave-balance-update', [LeaveBalanceController::class, 'updateEmployeeLeaveBalance']);
     Route::get('my/leave-balance-list', [LeaveBalanceController::class, 'myLeaveBalanceList']);
+    Route::post('admin/leave-setting-manually', [LeaveBalanceController::class, 'addLeaveBalanceManually']);
 
     //Approval Flow Setup
     Route::post('admin/add-approval-flow', [LeaveApprovalFlowSetupController::class, 'addApprovalFlow']);
@@ -94,6 +95,8 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::post('admin/update-calender', [CalendarController::class, 'updateCalendar']);
     Route::post('admin/generate-calender', [CalendarController::class, 'generateCalendar']);
     Route::get('admin/year-list', [CalendarController::class, 'getYearList']);
+    Route::get('my/calendar-list', [CalendarController::class, 'getAcademicCalenadr']);
+    
 
     //Leave Application
     Route::get('leave/application-list', [LeaveApplicationController::class, 'getLeaveApplication']);
@@ -121,6 +124,7 @@ Route::middleware('auth:sanctum')->group( function () {
     
 });
 
+Route::get('admin/import-employee', [EmployeeController::class, 'import']);
 // Route::post('trancate-data', [MasterSettingsController::class, 'trancateData']);
 
 Route::any('{url}', function(){

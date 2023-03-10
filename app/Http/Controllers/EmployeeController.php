@@ -7,7 +7,9 @@ use Exception;
 use App\Models\User;
 use App\Models\Company;
 use App\Models\FiscalYear;
+use App\Models\Department;
 use App\Models\Designation;
+use App\Models\EmployeeJson;
 use App\Models\EmployeeInfo;
 use Illuminate\Http\Request;
 use App\Models\LeavePolicy;
@@ -298,7 +300,7 @@ class EmployeeController extends Controller
                 ]);
             }
 
-            $this->addLeaveBalance($employee->id);
+            //$this->addLeaveBalance($employee->id);
 
             return response()->json([
                 'status' => true,
@@ -616,6 +618,104 @@ class EmployeeController extends Controller
             'status' => true,
             'message' => 'Successful',
             'data' => $employee
+        ], 200);
+    }
+
+    public function employeeExcelImport ($employee)
+    {
+        $employee_code = $this->generateEmployeeCode($employee->company_id, $employee->finger_print_id);
+
+        $user = User::create([
+            'name' => $employee->name,
+            'email' => $employee->office_email_id,
+            'contact_no' => '0'.$employee->personal_contact_number,
+            'employee_code' => $employee_code,
+            'company_id' => $employee->company_id,
+            'address' => $employee->present_address,
+            'institution' => null,
+            'education' => $employee->highest_level_of_study,
+            'user_type' => 'Employee',
+            'password' => Hash::make('BB@2023')
+        ]);
+
+        $saved_employee = EmployeeInfo::create([
+            "user_id" => $user->id,
+            "name" => $employee->name,
+            "email" => $employee->office_email_id,
+            "mobile" => "0".$employee->personal_contact_number,
+            "present_address" => $employee->present_address,
+            "permanent_address" => $employee->permanent_address,
+            "father_name" => $employee->father_name,
+            "mother_name" => $employee->mother_name,
+            "employee_id" => $employee->finger_print_id,
+            "employee_code" => $employee_code,
+            "nid" => $employee->nid,
+            "date_of_birth" => $employee->date_of_birth,
+            "joining_date" => $employee->joining_date,
+            "marital_status" => "Unmarried",
+            "gender" => "Male",
+            "blood_group" => $employee->blood_group,
+            "company_id" => $employee->company_id,
+            "branch_id" => $employee->branch_id,
+            "department_id" => $employee->department_id,
+            "designation_id" => $employee->designation_id,
+            "employment_type_id" => 1,
+            "division_id" => null,
+            "district_id" => null,
+            "city_id" => null,
+            "area_id" => null,
+            "is_stuckoff" => false,
+            "is_active" => true,
+            "office_contact_number" => "0".$employee->office_number,
+            "finger_print_id" => $employee->finger_print_id,
+            "personal_alt_contact_number" => '0'.$employee->personal_contact_number,
+            "personal_email" => $employee->personal_email_id,
+            "passport_number" => $employee->passport_number,
+            "spouse_name" => $employee->spouse_name,
+            "spouse_number" => $employee->spouse_number,
+            "fathers_contact_number" => $employee->father_contact_number,
+            "mothers_contact_number" => $employee->mother_contact_number,
+            "referee_office" => $employee->referee_office,
+            "referee_relative" => $employee->referee_relative,
+            "referee_contact_details" => $employee->referee_contact_details,
+            "key_skills" => $employee->key_skills,
+            "highest_level_of_study" => $employee->highest_level_of_study,
+            "e_tin" => $employee->e_tin,
+            "applicable_tax_amount" => $employee->applicable_tax_amount,
+            "official_achievement" => $employee->official_achievement,
+            "remarks" => $employee->remarks,
+        ]);
+        
+        $this->addLeaveBalance($saved_employee->id);
+
+        return true;
+    }
+
+    public function import(Request $request){
+        $employees = EmployeeJson::all();
+
+        foreach ($employees as $item) {
+            $is_designation_exist = Designation::where('title', $item->designation)->first();
+            if(!is_null($is_designation_exist)){
+                $item->designation_id = $is_designation_exist->id;
+            }else{
+                $item->designation_id = null;
+            }
+
+            $is_department_exist = Department::where('name', $item->department)->first();
+            if(!is_null($is_department_exist)){
+                $item->department_id = $is_department_exist->id;
+            }else{
+                $item->department_id = null;
+            }
+
+            $this->employeeExcelImport($item);
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Employee Import Successful!',
+            'data' => $employees
         ], 200);
     }
 

@@ -222,6 +222,99 @@ class LeaveBalanceController extends Controller
         ], 200);
     }
 
+    public function addLeaveBalanceManually(Request $request)
+    {
+        $employee_id = $request->employee_id ? $request->employee_id : 0;
+        $employment_type_id = $request->employment_type_id ? $request->employment_type_id : 0;
+
+        if(!$employee_id){
+            return response()->json([
+                'status' => false,
+                'message' => 'Please, attach Employee ID',
+                'data' => []
+            ], 409);
+        }
+
+        if(!$employment_type_id){
+            return response()->json([
+                'status' => false,
+                'message' => 'Please, attach Employment Type',
+                'data' => []
+            ], 409);
+        }
+
+        $employee_details = EmployeeInfo::where('id', $employee_id)->first();
+        $fiscal_year = FiscalYear::where('is_active', true)->first();
+        $leave_policy = LeavePolicy::all();
+
+        foreach ($leave_policy as $policy) {
+            $isBalanceExist = LeaveBalance::where('employee_id', $employee_id)->where('leave_policy_id', $policy->id)->where('fiscal_year_id', $fiscal_year->id)->first();
+
+            if(!$isBalanceExist){
+                $setting = LeaveBalanceSetting::where('leave_policy_id', $policy->id)->where('employment_type_id', $employment_type_id)->first();
+             
+                if(!empty($setting)){
+
+                    if($policy->is_applicable_for_all){
+                        LeaveBalance::create([
+                            'employee_id' => $employee_id,
+                            'user_id' => $employee_details->user_id,
+                            'leave_policy_id' => $policy->id,
+                            'fiscal_year_id' => $fiscal_year->id,
+                            'total_days' => $setting->total_days,
+                            'availed_days' => 0,
+                            'remaining_days' => $setting->total_days,
+                            'carry_forward_balance' => 0,
+                            'is_active' => true
+                        ]);
+                    }else{
+                        if($policy->applicable_for == 'Male' && $employee_details->gender == 'Male')
+                        {
+                            LeaveBalance::create([
+                                'employee_id' => $employee_id,
+                                'user_id' => $employee_details->user_id,
+                                'leave_policy_id' => $policy->id,
+                                'fiscal_year_id' => $fiscal_year->id,
+                                'total_days' => $setting->total_days,
+                                'availed_days' => 0,
+                                'remaining_days' => $setting->total_days,
+                                'carry_forward_balance' => 0,
+                                'is_active' => true
+                            ]); 
+                        }
+
+                        if($policy->applicable_for == 'Female' && $employee_details->gender == 'Female')
+                        {
+                            LeaveBalance::create([
+                                'employee_id' => $employee_id,
+                                'user_id' => $employee_details->user_id,
+                                'leave_policy_id' => $policy->id,
+                                'fiscal_year_id' => $fiscal_year->id,
+                                'total_days' => $setting->total_days,
+                                'availed_days' => 0,
+                                'remaining_days' => $setting->total_days,
+                                'carry_forward_balance' => 0,
+                                'is_active' => true
+                            ]); 
+                        }
+
+                    }
+                }
+            }else{
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Leave balance already added! You can update!',
+                    'data' => []
+                ], 409);
+            }
+        }
+        return response()->json([
+            'status' => true,
+            'message' => 'Leave Balance added successfull!',
+            'data' => []
+        ], 200);
+    }
+
     public function updateEmployeeLeaveBalance(Request $request)
     {
         LeaveBalance::where('id', $request->id)->update([

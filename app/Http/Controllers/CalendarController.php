@@ -10,7 +10,9 @@ use App\Models\Company;
 use App\Models\DayType;
 use App\Models\Calendar;
 use Illuminate\Http\Request;
+use App\Models\EmployeeInfo;
 use App\Models\DayStatusSetting;
+use App\Models\LeaveApplications;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
@@ -102,9 +104,13 @@ class CalendarController extends Controller
 
     public function getCalendar(Request $request){
         $year = $request->year ? $request->year : 0;
+        $month_in_number =  $request->month_in_number ? $request->month_in_number : 0;
 
         if($year == 'null'){
             $year = 0;
+        }
+        if($month_in_number == 'null'){
+            $month_in_number = 0;
         }
 
         $calendar_list = Calendar::select(
@@ -123,6 +129,9 @@ class CalendarController extends Controller
         ->when($year, function ($query) use ($year){
             return $query->where('calendars.year', $year);
         })
+        ->when($month_in_number, function ($query) use ($month_in_number){
+            return $query->where('calendars.month_in_number', $month_in_number);
+        })
         ->orderBy('id', "DESC")
         ->get();
 
@@ -134,7 +143,7 @@ class CalendarController extends Controller
     }
 
     public function getYearList(Request $request){
-        $year_list = Calendar::groupBy('year')->get();
+        $year_list = Calendar::groupBy('year')->orderBY('year', 'DESC')->get();
         
         return response()->json([
             'status' => true,
@@ -252,6 +261,46 @@ class CalendarController extends Controller
             'status' => true,
             'message' => 'Calendar has been added successfully',
             'data' => []
+        ], 200);
+    }
+
+    public function getAcademicCalenadr(Request $request)
+    {
+        $user_id = $request->user()->id;
+        $employee = EmployeeInfo::where('user_id', $user_id)->first();
+        $employee_id = $employee->id ? $employee->id : 0;
+        
+        $weekend_holiday = Calendar::select(
+            'calendars.id',
+            'calendars.date',
+            'calendars.day_note',
+            'day_types.title as day_type_title',
+            'day_types.day_short_code as day_type_short_code'
+        )
+        ->where('calendars.day_type_id', '!=', 1)
+        ->leftJoin('day_types', 'day_types.id', 'calendars.day_type_id')
+        ->orderBy('id', "DESC")
+        ->get();
+
+        $leave_list = LeaveApplications::select(
+            'leave_applications.*',
+            'leave_policies.leave_title',
+            'leave_policies.leave_short_code'
+        )
+        ->leftJoin('leave_policies', 'leave_policies.id', 'leave_applications.leave_policy_id')
+        ->where('leave_applications.employee_id', $employee_id)
+        ->orderBy('leave_applications.id', "DESC")
+        ->get();
+
+        $response = [
+            "leave_list" => $leave_list,
+            "weekend_holiday" => $weekend_holiday
+        ];
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Calendar listed successfull',
+            'data' => $response
         ], 200);
     }
 }
