@@ -312,6 +312,50 @@ class AuthController extends Controller
         }
     }
 
+    public function changePassword(Request $request)
+    {
+        $user_id = $request->user()->id;
+        $user = User::where('users.id', $user_id)->first();
+
+        $validateUser = Validator::make($request->all(), 
+        [
+            'old_password' => 'required',
+            'new_password' => 'required',
+            'confirm_password' => 'required'
+        ]);
+
+        if($validateUser->fails()){
+            return response()->json([
+                'status' => false,
+                'message' => 'validation error',
+                'data' => $validateUser->errors()
+            ], 409);
+        }
+
+        $user_object = [
+            'email' => $user->email, 
+            'password' => $request->old_password
+        ];
+
+        if(!Auth::guard('web')->attempt($user_object)){
+            return response()->json([
+                'status' => false,
+                'message' => 'Email & Password does not match with our record.',
+                'data' => []
+            ], 409);
+        }
+
+        $user->update([
+            'password' => Hash::make($request->new_password)
+        ]);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Your password has been updated successful!',
+            'data' => $user
+        ], 200);
+    }
+
     public function updateUser(Request $request)
     {
         $user_id = $request->user()->id;

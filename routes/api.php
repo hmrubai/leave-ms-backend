@@ -32,9 +32,13 @@ Route::middleware('auth:sanctum')->group( function () {
         return $request->user();
     });
 
+    Route::post('/auth/change-password', [AuthController::class, 'changePassword']);
+
+    //Company
     Route::post('admin/company-save-or-update', [OrganizationController::class, 'saveOrUpdateCompany']);
     Route::get('admin/company-list', [OrganizationController::class, 'companyList']);
 
+    //Branch
     Route::post('admin/branch-save-or-update', [OrganizationController::class, 'saveOrUpdateBranch']);
     Route::get('admin/branch-list', [OrganizationController::class, 'branchList']);
     Route::get('admin/branch-list-by-company-id/{company_id}', [OrganizationController::class, 'branchListByCompanyID']);
@@ -97,7 +101,6 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::get('admin/year-list', [CalendarController::class, 'getYearList']);
     Route::get('my/calendar-list', [CalendarController::class, 'getAcademicCalenadr']);
     
-
     //Leave Application
     Route::get('leave/application-list', [LeaveApplicationController::class, 'getLeaveApplication']);
     Route::post('leave/check-validity', [LeaveApplicationController::class, 'checkLeaveValidity']);
