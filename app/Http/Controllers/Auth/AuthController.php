@@ -356,6 +356,44 @@ class AuthController extends Controller
         ], 200);
     }
 
+    public function updatePasswordByAdmin(Request $request)
+    {
+        $user_id = $request->user_id;
+        $user = User::where('users.id', $user_id)->first();
+
+        $validateUser = Validator::make($request->all(), 
+        [
+            'user_id' => 'required',
+            'new_password' => 'required'
+        ]);
+
+        if($validateUser->fails()){
+            return response()->json([
+                'status' => false,
+                'message' => 'validation error',
+                'data' => $validateUser->errors()
+            ], 409);
+        }
+
+        if(empty($user)){
+            return response()->json([
+                'status' => false,
+                'message' => 'User not found!',
+                'data' => []
+            ], 409);
+        }
+
+        $user->update([
+            'password' => Hash::make($request->new_password)
+        ]);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Your password has been updated successful!',
+            'data' => $user
+        ], 200);
+    }
+
     public function updateUser(Request $request)
     {
         $user_id = $request->user()->id;

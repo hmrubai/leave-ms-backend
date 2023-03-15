@@ -33,6 +33,7 @@ Route::middleware('auth:sanctum')->group( function () {
     });
 
     Route::post('/auth/change-password', [AuthController::class, 'changePassword']);
+    Route::post('/auth/update-password', [AuthController::class, 'updatePasswordByAdmin']);
 
     //Company
     Route::post('admin/company-save-or-update', [OrganizationController::class, 'saveOrUpdateCompany']);

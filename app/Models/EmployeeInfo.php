@@ -30,6 +30,7 @@ class EmployeeInfo extends Model
         'branch_id',
         'department_id',
         'designation_id',
+        'wing',
         'employment_type_id',
         'division_id',
         'district_id',
