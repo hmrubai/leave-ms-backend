@@ -412,6 +412,7 @@ class EmployeeController extends Controller
                 "company_id" => $request->company_id,
                 "branch_id" => $request->branch_id,
                 "designation_id" => $request->designation_id,
+                "wing" => $request->wing,
                 "department_id" => $request->department_id,
                 "employment_type_id" => $request->employment_type_id,
                 "division_id" => $request->division_id,
