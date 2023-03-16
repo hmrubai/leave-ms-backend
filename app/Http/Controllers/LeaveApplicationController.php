@@ -381,9 +381,12 @@ class LeaveApplicationController extends Controller
 
         $leave_list = LeaveApplications::select(
             'leave_applications.*',
-            'leave_policies.leave_title'
+            'leave_policies.leave_title',
+            'employee_infos.name as employee_name',
+            'employee_infos.mobile as employee_mobile',
         )
         ->leftJoin('leave_policies', 'leave_policies.id', 'leave_applications.leave_policy_id')
+        ->leftJoin('employee_infos', 'employee_infos.id', 'leave_applications.employee_id')
         ->whereIn('leave_applications.id', $leave_ids)
         ->orderBy('leave_applications.id', "DESC")
         ->get();
@@ -407,9 +410,12 @@ class LeaveApplicationController extends Controller
 
         $leave_list = LeaveApplications::select(
             'leave_applications.*',
-            'leave_policies.leave_title'
+            'leave_policies.leave_title',
+            'employee_infos.name as employee_name',
+            'employee_infos.mobile as employee_mobile'
         )
         ->leftJoin('leave_policies', 'leave_policies.id', 'leave_applications.leave_policy_id')
+        ->leftJoin('employee_infos', 'employee_infos.id', 'leave_applications.employee_id')
         ->whereIn('leave_applications.id', $leave_ids)
         ->orderBy('leave_applications.id', "DESC")
         ->get();
@@ -556,6 +562,7 @@ class LeaveApplicationController extends Controller
     public function rejectLeave(Request $request)
     {
         $application_id = $request->leave_application_id ? $request->leave_application_id : 0;
+        $rejection_cause = $request->rejection_cause ? $request->rejection_cause : "";
         $user_id = $request->user()->id;
 
         if(!$application_id){
@@ -595,7 +602,8 @@ class LeaveApplicationController extends Controller
         ]);
 
         $application->update([
-            "leave_status" => "Rejected"
+            "leave_status" => "Rejected",
+            "rejection_cause" => $rejection_cause
         ]);
 
         $recipants_emails = [];

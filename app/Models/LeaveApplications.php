@@ -20,7 +20,8 @@ class LeaveApplications extends Model
         'half_day',
         'responsibility_carried_by',
         'leave_status',
-        'leave_reason'
+        'leave_reason',
+        'rejection_cause'
     ];
 
     protected $casts = [
