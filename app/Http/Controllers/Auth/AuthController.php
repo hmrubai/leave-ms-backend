@@ -106,7 +106,11 @@ class AuthController extends Controller
                 ], 409);
             }
 
-            $user = User::where('email', $request->email)->first();
+            $user = User::select('users.*','designations.title as designation')
+                ->where('users.email', $request->email)
+                ->leftJoin('employee_infos', 'employee_infos.user_id', 'users.id')
+                ->leftJoin('designations', 'designations.id', 'employee_infos.designation_id')
+                ->first();
 
             if(!$user->is_active){
                 return response()->json([
@@ -126,6 +130,7 @@ class AuthController extends Controller
                 'address' => $user->address,
                 'institution' => $user->institution,
                 'education' => $user->education,
+                'designation' => $user->designation,
                 'contact_no' => $user->contact_no,
                 'updated_at' => $user->updated_at,
                 'token' => $user->createToken("API TOKEN")->plainTextToken
@@ -171,7 +176,11 @@ class AuthController extends Controller
                 ], 409);
             }
 
-            $user = User::where('employee_code', $request->employee_code)->first();
+            $user = User::select('users.*','designations.title as designation')
+            ->where('users.email', $request->email)
+            ->leftJoin('employee_infos', 'employee_infos.user_id', 'users.id')
+            ->leftJoin('designations', 'designations.id', 'employee_infos.designation_id')
+            ->first();
 
             if(!$user->is_active){
                 return response()->json([
@@ -190,6 +199,7 @@ class AuthController extends Controller
                 'image' => $user->image,
                 'address' => $user->address,
                 'institution' => $user->institution,
+                'designation' => $user->designation,
                 'education' => $user->education,
                 'contact_no' => $user->contact_no,
                 'updated_at' => $user->updated_at,
