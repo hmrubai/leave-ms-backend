@@ -502,6 +502,24 @@ class EmployeeController extends Controller
         ], 200);
     }
 
+    public function offboardEmployeeList (Request $request)
+    {
+        $employee_list = EmployeeInfo::select('employee_infos.*', 'designations.title as designation', 'wings.name as wing_name', 'departments.name as department', 'users.image', 'users.user_type')
+        ->leftJoin('users', 'users.id', 'employee_infos.user_id')
+        ->leftJoin('designations', 'designations.id', 'employee_infos.designation_id')
+        ->leftJoin('wings', 'wings.id', 'employee_infos.wing_id')
+        ->leftJoin('departments', 'departments.id', 'employee_infos.department_id')
+        ->where("employee_infos.is_stuckoff", true)
+        ->orderBy('employee_infos.employee_code', 'ASC')
+        ->get();
+        
+        return response()->json([
+            'status' => true,
+            'message' => 'Successful',
+            'data' => $employee_list
+        ], 200);
+    }
+
     public function employeeFilterList (Request $request)
     {
         $company_id = $request->company_id ? $request->company_id : 0;
@@ -644,6 +662,44 @@ class EmployeeController extends Controller
             'status' => true,
             'message' => 'Successful',
             'data' => $employee
+        ], 200);
+    }
+
+    public function makeEmployeeOffboard (Request $request)
+    {
+        $validateUser = Validator::make($request->all(), 
+        [
+            'employee_id' => 'required',
+            'offboarding_date' => 'required',
+        ]);
+
+        if($validateUser->fails()){
+            return response()->json([
+                'status' => false,
+                'message' => 'validation error',
+                'data' => $validateUser->errors()
+            ], 409);
+        }
+
+        $employee = EmployeeInfo::where('id', $request->employee_id)->first();
+
+        if(is_null($employee)){
+            return response()->json([
+                'status' => false,
+                'message' => 'Employee not found!',
+                'data' => []
+            ], 409);
+        }
+
+        $employee->update([
+            'is_stuckoff' => true,
+            'stuckoff_date' => $request->offboarding_date,
+        ]);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Employee has been offboarded successfully',
+            'data' => []
         ], 200);
     }
 

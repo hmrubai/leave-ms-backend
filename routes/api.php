@@ -66,6 +66,8 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::get('admin/employee-details-by-id/{employee_id}', [EmployeeController::class, 'employeeDetailsByID']);
     Route::get('admin/employee-filter-list', [EmployeeController::class, 'employeeFilterList']);
     Route::get('admin/approval-authority-list', [EmployeeController::class, 'approvalAuthorityList']);
+    Route::post('admin/make-employee-offboarded', [EmployeeController::class, 'makeEmployeeOffboard']);
+    Route::get('admin/offboarded-employee-list', [EmployeeController::class, 'offboardEmployeeList']);
 
     Route::post('admin/update-leave-balance', [EmployeeController::class, 'addManualLeaveBalance']);
     
