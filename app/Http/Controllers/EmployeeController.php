@@ -491,7 +491,8 @@ class EmployeeController extends Controller
         ->leftJoin('designations', 'designations.id', 'employee_infos.designation_id')
         ->leftJoin('wings', 'wings.id', 'employee_infos.wing_id')
         ->leftJoin('departments', 'departments.id', 'employee_infos.department_id')
-        ->orderBy('employee_infos.name', 'ASC')
+        ->where("employee_infos.is_stuckoff", false)
+        ->orderBy('employee_infos.employee_code', 'ASC')
         ->get();
         
         return response()->json([
