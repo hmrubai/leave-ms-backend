@@ -94,6 +94,17 @@ class LeaveApplicationController extends Controller
             ], 409);
         }
 
+        $joining_date = $employee->joining_date->format('Y-m-d');
+        $join_days = now()->diffInDays(Carbon::parse($joining_date));
+
+        if($leave_policy_id == 3 && $join_days < 365){
+            return response()->json([
+                'status' => false,
+                'message' => 'You are not eligible for this leave! Please, contact to HR department.',
+                'data' => []
+            ], 409);
+        }
+
         $leave_flow = LeaveApprovelFlowSetting::select(
             'leave_approvel_flow_settings.*',
             'employee_infos.email as approval_email'
@@ -208,6 +219,17 @@ class LeaveApplicationController extends Controller
             return response()->json([
                 'status' => false,
                 'message' => 'You can not apply for a leave for the multiple Fiscal Year',
+                'data' => []
+            ], 409);
+        }
+
+        $joining_date = $employee->joining_date->format('Y-m-d');
+        $join_days = now()->diffInDays(Carbon::parse($joining_date));
+
+        if($leave_policy_id == 3 && $join_days < 365){
+            return response()->json([
+                'status' => false,
+                'message' => 'You are not eligible for this leave! Please, contact to HR department.',
                 'data' => []
             ], 409);
         }
@@ -430,6 +452,8 @@ class LeaveApplicationController extends Controller
     public function getLeaveDetailsByID(Request $request)
     {
         $application_id = $request->leave_application_id ? $request->leave_application_id : 0;
+        $user_id = $request->user()->id;
+        $user = User::where('id', $user_id)->first();
 
         $leave_details = LeaveApplications::select(
             'leave_applications.*',
@@ -465,12 +489,21 @@ class LeaveApplicationController extends Controller
             ->leftJoin('leave_policies', 'leave_policies.id', 'leave_balances.leave_policy_id')
             ->where('leave_balances.fiscal_year_id', $fiscal_year->id)
             ->get();
+        
+        $leave_count_on_this_day = 0;
+        
+        if($user->user_type == 'ApprovalAuthority'){
+            $leave_count_on_this_day = LeaveApplications::where('leave_status', 'Approved')
+            ->whereBetween('start_date', [$leave_details->start_date, $leave_details->end_date])
+            ->get()->count();
+        }
 
         $response_details = [
             "leave" => $leave_details,
             "leave_flow" => $leave_flow,
             "employee" => $employee,
             "leave_balances" => $leave_balances,
+            "leave_count_on_this_day" => $leave_count_on_this_day
         ];
 
         return response()->json([
