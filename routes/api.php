@@ -49,6 +49,11 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::get('admin/designation-list', [MasterSettingsController::class, 'designationList']);
     Route::get('admin/designation-list-by-id/{company_id}/{branch_id}', [MasterSettingsController::class, 'designationListByID']);
 
+    //Wing
+    Route::post('admin/wing-save-or-update', [MasterSettingsController::class, 'saveOrUpdateWing']);
+    Route::get('admin/wing-list', [MasterSettingsController::class, 'wingList']);
+    Route::get('admin/wing-list-by-id/{company_id}/{branch_id}', [MasterSettingsController::class, 'wingListByID']);
+
     //Department
     Route::post('admin/department-save-or-update', [OrganizationController::class, 'saveOrUpdateDepartment']);
     Route::get('admin/department-list', [OrganizationController::class, 'departmentList']);

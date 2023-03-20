@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Exception;
 use App\Models\User;
+use App\Models\Wing;
 use App\Models\Designation;
 use App\Models\FiscalYear;
 use App\Models\EmploymentType;
@@ -318,6 +319,130 @@ class MasterSettingsController extends Controller
             'status' => true,
             'message' => 'Successful',
             'data' => $employment_type_list
+        ], 200);
+    }
+
+    public function saveOrUpdateWing (Request $request)
+    {
+        try {
+            if($request->id){
+                $validateUser = Validator::make($request->all(), 
+                [
+                    'name' => 'required',
+                    'company_id' => 'required',
+                    'branch_id' => 'required'
+                ]);
+
+                if($validateUser->fails()){
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'validation error',
+                        'data' => $validateUser->errors()
+                    ], 409);
+                }
+
+                Wing::where('id', $request->id)->update($request->all());
+                return response()->json([
+                    'status' => true,
+                    'message' => 'Wing has been updated successfully',
+                    'data' => []
+                ], 200);
+
+            } else {
+                $isExist = Wing::where('name', $request->name)->where('company_id', $request->company_id)->where('branch_id', $request->branch_id)->first();
+                if (empty($isExist)) 
+                {
+                    $validateUser = Validator::make($request->all(), 
+                    [
+                        'name' => 'required',
+                        'company_id' => 'required',
+                        'branch_id' => 'required'
+                    ]);
+
+                    if($validateUser->fails()){
+                        return response()->json([
+                            'status' => false,
+                            'message' => 'validation error',
+                            'data' => $validateUser->errors()
+                        ], 409);
+                    }
+
+                    Wing::create($request->all());
+                    return response()->json([
+                        'status' => true,
+                        'message' => 'Wing has been created successfully',
+                        'data' => []
+                    ], 200);
+                }else{
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'Wing already Exist!',
+                        'data' => []
+                    ], 409);
+                }
+            }
+
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage(),
+                'data' => []
+            ], 400);
+        }
+    }
+
+    public function wingList (Request $request)
+    {
+        $wing_list = wing::select(
+            'wings.*',
+            'companies.name as company_name',
+            'branches.name as branch_name'
+        )
+        ->leftJoin('companies', 'companies.id', 'wings.company_id')
+        ->leftJoin('branches', 'branches.id', 'wings.branch_id')
+        ->orderBy('wings.name', 'ASC')
+        ->get();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Successful',
+            'data' => $wing_list
+        ], 200);
+    }
+
+    public function wingListByID (Request $request)
+    {
+        $company_id = $request->company_id;
+        $branch_id = $request->branch_id;
+
+        if(!$company_id || !$branch_id){
+            return response()->json([
+                'status' => false,
+                'message' => 'Please, attach Company ID Or Branch ID',
+                'data' => []
+            ], 200);
+        }
+
+        $wing_list = Wing::select(
+                'wings.*',
+                'companies.name as company_name',
+                'branches.name as branch_name'
+            )
+        ->when($company_id, function ($query) use ($company_id){
+            return $query->where('wings.company_id', $company_id);
+        })
+        ->when($branch_id, function ($query) use ($branch_id){
+            return $query->where('wings.branch_id', $branch_id);
+        })
+        ->leftJoin('companies', 'companies.id', 'wings.company_id')
+        ->leftJoin('branches', 'branches.id', 'wings.branch_id')
+        ->orderBy('wings.name', 'ASC')
+        ->get();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Successful',
+            'data' => $wing_list
         ], 200);
     }
 

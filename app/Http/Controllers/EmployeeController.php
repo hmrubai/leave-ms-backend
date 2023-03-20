@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 
 use Exception;
 use App\Models\User;
+use App\Models\Wing;
 use App\Models\Company;
 use App\Models\FiscalYear;
 use App\Models\Department;
@@ -245,6 +246,14 @@ class EmployeeController extends Controller
                 'password' => Hash::make('BB@2023')
             ]);
 
+            $wing_name = null;
+            if($request->wing_id){
+                $wing = Wing::where('id', $request->wing_id)->first();
+                if(!empty($wing)){
+                    $wing_name = $wing->name;
+                }
+            }
+
             $employee = EmployeeInfo::create([
                 "user_id" => $user->id,
                 "name" => $request->name,
@@ -267,7 +276,8 @@ class EmployeeController extends Controller
                 "branch_id" => $request->branch_id,
                 "department_id" => $request->department_id,
                 "designation_id" => $request->designation_id,
-                "wing" => $request->wing ?? $request->wing,
+                "wing" => $wing_name,
+                "wing_id" => $request->wing_id ?? $request->wing_id,
                 "employment_type_id" => $request->employment_type_id,
                 "division_id" => $request->division_id,
                 "district_id" => $request->district_id,
@@ -393,6 +403,14 @@ class EmployeeController extends Controller
                 'user_type' => $user_type
             ]);
 
+            $wing_name = null;
+            if($request->wing_id){
+                $wing = Wing::where('id', $request->wing_id)->first();
+                if(!empty($wing)){
+                    $wing_name = $wing->name;
+                }
+            }
+
             EmployeeInfo::where('id', $request->id)->update([
                 "name" => $request->name,
                 "mobile" => $request->mobile,
@@ -412,7 +430,8 @@ class EmployeeController extends Controller
                 "company_id" => $request->company_id,
                 "branch_id" => $request->branch_id,
                 "designation_id" => $request->designation_id,
-                "wing" => $request->wing,
+                "wing" => $wing_name,
+                "wing_id" => $request->wing_id ?? $request->wing_id,
                 "department_id" => $request->department_id,
                 "employment_type_id" => $request->employment_type_id,
                 "division_id" => $request->division_id,
@@ -467,9 +486,10 @@ class EmployeeController extends Controller
 
     public function employeeList (Request $request)
     {
-        $employee_list = EmployeeInfo::select('employee_infos.*', 'designations.title as designation', 'departments.name as department', 'users.image', 'users.user_type')
+        $employee_list = EmployeeInfo::select('employee_infos.*', 'designations.title as designation', 'wings.name as wing_name', 'departments.name as department', 'users.image', 'users.user_type')
         ->leftJoin('users', 'users.id', 'employee_infos.user_id')
         ->leftJoin('designations', 'designations.id', 'employee_infos.designation_id')
+        ->leftJoin('wings', 'wings.id', 'employee_infos.wing_id')
         ->leftJoin('departments', 'departments.id', 'employee_infos.department_id')
         ->orderBy('employee_infos.name', 'ASC')
         ->get();
@@ -501,9 +521,10 @@ class EmployeeController extends Controller
             $designation_id = 0; 
         }
 
-        $employee_list = EmployeeInfo::select('employee_infos.*', 'designations.title as designation', 'departments.name as department', 'users.image', 'users.user_type')
+        $employee_list = EmployeeInfo::select('employee_infos.*', 'designations.title as designation', 'wings.name as wing_name', 'departments.name as department', 'users.image', 'users.user_type')
         ->leftJoin('users', 'users.id', 'employee_infos.user_id')
         ->leftJoin('designations', 'designations.id', 'employee_infos.designation_id')
+        ->leftJoin('wings', 'wings.id', 'employee_infos.wing_id')
         ->leftJoin('departments', 'departments.id', 'employee_infos.department_id')
         ->when($company_id, function ($query) use ($company_id){
             return $query->where('employee_infos.company_id', $company_id);
@@ -591,6 +612,7 @@ class EmployeeController extends Controller
             'employee_infos.*', 
             'designations.title as designation', 
             'departments.name as department', 
+            'wings.name as wing_name',
             'users.image',
             'users.institution',
             'users.education',
@@ -608,6 +630,7 @@ class EmployeeController extends Controller
         ->leftJoin('branches', 'branches.id', 'employee_infos.branch_id')
         ->leftJoin('employment_types', 'employment_types.id', 'employee_infos.employment_type_id')
         ->leftJoin('designations', 'designations.id', 'employee_infos.designation_id')
+        ->leftJoin('wings', 'wings.id', 'employee_infos.wing_id')
         ->leftJoin('departments', 'departments.id', 'employee_infos.department_id')
         ->leftJoin('divisions', 'divisions.id', 'employee_infos.division_id')
         ->leftJoin('districts', 'districts.id', 'employee_infos.district_id')
@@ -662,6 +685,7 @@ class EmployeeController extends Controller
             "department_id" => $employee->department_id,
             "designation_id" => $employee->designation_id,
             "wing" => $employee->wing ?? $employee->wing,
+            "wing_id" => $employee->wing_id ?? $employee->wing_id,
             "employment_type_id" => 1,
             "division_id" => null,
             "district_id" => null,
