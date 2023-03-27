@@ -13,6 +13,7 @@ use App\Models\LeavePolicy;
 use App\Models\LeaveBalance;
 use App\Models\EmployeeInfo;
 use App\Models\LeaveApprovelFlowSetting;
+use App\Models\LeaveCutExplanation;
 use App\Models\LeaveBalanceSetting;
 use App\Models\LeaveApplications;
 use App\Models\LeaveApplicationDetails;
@@ -489,6 +490,11 @@ class LeaveApplicationController extends Controller
             ->leftJoin('leave_policies', 'leave_policies.id', 'leave_balances.leave_policy_id')
             ->where('leave_balances.fiscal_year_id', $fiscal_year->id)
             ->get();
+        
+        foreach ($leave_balances as $item) {
+            $item->cutting_explanation = LeaveCutExplanation::where('leave_balance_id', $item->id)->get();
+            $item->has_cutting_history = LeaveCutExplanation::where('leave_balance_id', $item->id)->get()->count() ? true : false;
+        }
         
         $leave_count_on_this_day = 0;
         

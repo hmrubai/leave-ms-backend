@@ -220,6 +220,11 @@ class LeaveBalanceController extends Controller
             })
             ->orderBy('leave_policies.leave_title', 'ASC')
             ->get();
+        
+        foreach ($employee->balance_list as $item) {
+            $item->cutting_explanation = LeaveCutExplanation::where('leave_balance_id', $item->id)->get();
+            $item->has_cutting_history = LeaveCutExplanation::where('leave_balance_id', $item->id)->get()->count() ? true : false;
+        }
 
         return response()->json([
             'status' => true,
