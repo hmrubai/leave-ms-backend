@@ -11,6 +11,7 @@ use App\Models\EmployeeInfo;
 use Illuminate\Http\Request;
 use App\Models\LeavePolicy;
 use App\Models\LeaveBalance;
+use App\Models\LeaveCutExplanation;
 use App\Models\LeaveBalanceSetting;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -158,6 +159,11 @@ class LeaveBalanceController extends Controller
             })
             ->orderBy('leave_policies.leave_title', 'ASC')
             ->get();
+
+        foreach ($employee->balance_list as $item) {
+            $item->cutting_explanation = LeaveCutExplanation::where('leave_balance_id', $item->id)->get();
+            $item->has_cutting_history = LeaveCutExplanation::where('leave_balance_id', $item->id)->get()->count() ? true : false;
+        }
 
         return response()->json([
             'status' => true,
@@ -321,6 +327,55 @@ class LeaveBalanceController extends Controller
             'total_days' => $request->total_days,
             'availed_days' => $request->availed_days,
             'remaining_days' => $request->remaining_days
+        ]);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Leave balance updated successful',
+            'data' => []
+        ], 200);
+    }
+
+    public function cutEmployeeLeaveBalance(Request $request)
+    {
+        $validateRequest = Validator::make($request->all(), 
+        [
+            'id' => 'required',
+            'total_cutting_days' => 'required',
+            'note' => 'required'
+        ]);
+
+        if($validateRequest->fails()){
+            return response()->json([
+                'status' => false,
+                'message' => 'validation error',
+                'data' => $validateRequest->errors()
+            ], 409);
+        }
+
+        $leave_balance = LeaveBalance::where('id', $request->id)->first();
+
+        if($leave_balance->remaining_days < $request->total_cutting_days){
+            return response()->json([
+                'status' => false,
+                'message' => 'Please, enter correct value!',
+                'data' => []
+            ], 409);
+        }
+
+        LeaveCutExplanation::create([
+            'employee_id' => $leave_balance->employee_id,
+            'user_id' => $leave_balance->user_id,
+            'leave_policy_id' => $leave_balance->leave_policy_id,
+            'leave_balance_id' => $request->id,
+            'fiscal_year_id' => $leave_balance->fiscal_year_id,
+            'total_cutting_days' => $request->total_cutting_days,
+            'note' => $request->note,
+        ]);
+
+        LeaveBalance::where('id', $request->id)->update([
+            'availed_days' => $leave_balance->availed_days + $request->total_cutting_days,
+            'remaining_days' => $leave_balance->remaining_days - $request->total_cutting_days
         ]);
 
         return response()->json([
