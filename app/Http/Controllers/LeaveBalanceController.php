@@ -389,4 +389,45 @@ class LeaveBalanceController extends Controller
             'data' => []
         ], 200);
     }
+
+    public function resolvedCuttingLeaveBalance(Request $request)
+    {
+        $validateRequest = Validator::make($request->all(), 
+        [
+            'id' => 'required'
+        ]);
+
+        if($validateRequest->fails()){
+            return response()->json([
+                'status' => false,
+                'message' => 'validation error',
+                'data' => $validateRequest->errors()
+            ], 409);
+        }
+
+        $cut_explanation = LeaveCutExplanation::where('id', $request->id)->first();
+
+        if(empty($cut_explanation)){
+            return response()->json([
+                'status' => false,
+                'message' => 'Explanation not found!',
+                'data' => []
+            ], 404);
+        }
+
+        $leave_balance = LeaveBalance::where('id', $cut_explanation->leave_balance_id)->first();
+
+        LeaveBalance::where('id', $cut_explanation->leave_balance_id)->update([
+            'availed_days' => $leave_balance->availed_days - $cut_explanation->total_cutting_days,
+            'remaining_days' => $leave_balance->remaining_days + $cut_explanation->total_cutting_days
+        ]);
+
+        LeaveCutExplanation::where('id', $request->id)->delete();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Explanation has been deleted successful',
+            'data' => []
+        ], 200);
+    }
 }
