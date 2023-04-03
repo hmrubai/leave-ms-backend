@@ -410,6 +410,7 @@ class LeaveApplicationController extends Controller
         )
         ->leftJoin('leave_policies', 'leave_policies.id', 'leave_applications.leave_policy_id')
         ->leftJoin('employee_infos', 'employee_infos.id', 'leave_applications.employee_id')
+        ->where('leave_applications.leave_status', 'Pending')
         ->whereIn('leave_applications.id', $leave_ids)
         ->orderBy('leave_applications.id', "DESC")
         ->get();
@@ -439,6 +440,7 @@ class LeaveApplicationController extends Controller
         )
         ->leftJoin('leave_policies', 'leave_policies.id', 'leave_applications.leave_policy_id')
         ->leftJoin('employee_infos', 'employee_infos.id', 'leave_applications.employee_id')
+        ->where('leave_applications.leave_status', 'Approved')
         ->whereIn('leave_applications.id', $leave_ids)
         ->orderBy('leave_applications.id', "DESC")
         ->get();

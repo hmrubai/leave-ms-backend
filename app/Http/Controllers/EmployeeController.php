@@ -557,6 +557,7 @@ class EmployeeController extends Controller
         ->when($designation_id, function ($query) use ($designation_id){
             return $query->where('employee_infos.designation_id', $designation_id);
         })
+        ->where("employee_infos.is_stuckoff", false)
         // ->where("users.user_type", 'Employee')
         ->orderBy('employee_infos.name', 'ASC')
         ->get();
@@ -605,6 +606,7 @@ class EmployeeController extends Controller
             return $query->where('employee_infos.designation_id', $designation_id);
         })
         ->where("users.user_type", 'ApprovalAuthority')
+        ->where("employee_infos.is_stuckoff", false)
         ->orderBy('employee_infos.name', 'ASC')
         ->get();
         
