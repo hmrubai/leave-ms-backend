@@ -393,6 +393,26 @@ class LeaveApplicationController extends Controller
         ], 200);
     }
 
+    public function getAdminAllLeaveApplications(Request $request)
+    {
+        $leave_list = LeaveApplications::select(
+            'leave_applications.*',
+            'leave_policies.leave_title',
+            'employee_infos.name as employee_name',
+            'employee_infos.mobile as employee_mobile',
+        )
+        ->leftJoin('leave_policies', 'leave_policies.id', 'leave_applications.leave_policy_id')
+        ->leftJoin('employee_infos', 'employee_infos.id', 'leave_applications.employee_id')
+        ->orderBy('id', "DESC")
+        ->get();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Successful1',
+            'data' => $leave_list
+        ], 200);
+    }
+
     public function getApprovalAuthorityPendingLeaveList(Request $request){
         $user_id = $request->user()->id;
         $employee = EmployeeInfo::where('user_id', $user_id)->first();
@@ -441,6 +461,36 @@ class LeaveApplicationController extends Controller
         ->leftJoin('leave_policies', 'leave_policies.id', 'leave_applications.leave_policy_id')
         ->leftJoin('employee_infos', 'employee_infos.id', 'leave_applications.employee_id')
         ->where('leave_applications.leave_status', 'Approved')
+        ->whereIn('leave_applications.id', $leave_ids)
+        ->orderBy('leave_applications.id', "DESC")
+        ->get();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Successful1',
+            'data' => $leave_list
+        ], 200);
+    }
+
+    public function getApprovalAuthorityRejectedLeaveList(Request $request){
+        $user_id = $request->user()->id;
+        $employee = EmployeeInfo::where('user_id', $user_id)->first();
+
+        $leave_ids = LeaveApplicationApprovals::select('application_id')
+            ->where('approval_id', $employee->id)
+            ->where('approval_status', 'Rejected')
+            ->whereIn('step_flag', ['Completed'])
+            ->distinct()->pluck('application_id');
+
+        $leave_list = LeaveApplications::select(
+            'leave_applications.*',
+            'leave_policies.leave_title',
+            'employee_infos.name as employee_name',
+            'employee_infos.mobile as employee_mobile'
+        )
+        ->leftJoin('leave_policies', 'leave_policies.id', 'leave_applications.leave_policy_id')
+        ->leftJoin('employee_infos', 'employee_infos.id', 'leave_applications.employee_id')
+        ->where('leave_applications.leave_status', 'Rejected')
         ->whereIn('leave_applications.id', $leave_ids)
         ->orderBy('leave_applications.id', "DESC")
         ->get();
