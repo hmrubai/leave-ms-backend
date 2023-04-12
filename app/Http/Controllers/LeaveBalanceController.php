@@ -326,6 +326,76 @@ class LeaveBalanceController extends Controller
         ], 200);
     }
 
+    public function addLeaveBalanceForSingleTypeManually(Request $request)
+    {
+        $leave_policy_id = $request->leave_policy_id ? $request->leave_policy_id : 0;
+        $employee_list = EmployeeInfo::all();
+        $fiscal_year = FiscalYear::where('is_active', true)->first();
+        $leave_policy = LeavePolicy::where('id', $leave_policy_id)->first();
+
+        foreach ($employee_list as $employee) {
+            $isBalanceExist = LeaveBalance::where('employee_id', $employee->id)->where('leave_policy_id', $leave_policy_id)->where('fiscal_year_id', $fiscal_year->id)->first();
+
+            if(!$isBalanceExist){
+
+                $setting = LeaveBalanceSetting::where('leave_policy_id', $leave_policy_id)->where('employment_type_id', $employee->employment_type_id)->first();
+                if(!empty($setting)){
+
+                    if($leave_policy->is_applicable_for_all){
+                        LeaveBalance::create([
+                            'employee_id' => $employee->id,
+                            'user_id' => $employee->user_id,
+                            'leave_policy_id' => $leave_policy_id,
+                            'fiscal_year_id' => $fiscal_year->id,
+                            'total_days' => $setting->total_days,
+                            'availed_days' => 0,
+                            'remaining_days' => $setting->total_days,
+                            'carry_forward_balance' => 0,
+                            'is_active' => true
+                        ]);
+                    }else{
+                        if($leave_policy->applicable_for == 'Male' && $employee->gender == 'Male')
+                        {
+                            LeaveBalance::create([
+                                'employee_id' => $employee->id,
+                                'user_id' => $employee->user_id,
+                                'leave_policy_id' => $leave_policy_id,
+                                'fiscal_year_id' => $fiscal_year->id,
+                                'total_days' => $setting->total_days,
+                                'availed_days' => 0,
+                                'remaining_days' => $setting->total_days,
+                                'carry_forward_balance' => 0,
+                                'is_active' => true
+                            ]); 
+                        }
+
+                        if($leave_policy->applicable_for == 'Female' && $employee->gender == 'Female')
+                        {
+                            LeaveBalance::create([
+                                'employee_id' => $employee->id,
+                                'user_id' => $employee->user_id,
+                                'leave_policy_id' => $leave_policy_id,
+                                'fiscal_year_id' => $fiscal_year->id,
+                                'total_days' => $setting->total_days,
+                                'availed_days' => 0,
+                                'remaining_days' => $setting->total_days,
+                                'carry_forward_balance' => 0,
+                                'is_active' => true
+                            ]); 
+                        }
+
+                    }
+                }
+            }
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Leave Balance added successfull!',
+            'data' => []
+        ], 200);
+    }
+
     public function updateEmployeeLeaveBalance(Request $request)
     {
         LeaveBalance::where('id', $request->id)->update([
