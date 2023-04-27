@@ -94,4 +94,48 @@ class DashboardController extends Controller
             'data' => $employee
         ], 200);
     }
+
+    public function getApprovalDashboardSummary(Request $request){
+        $user_id = $request->user()->id;
+        $employee = EmployeeInfo::where('user_id', $user_id)->first();
+
+        $leave_ids = LeaveApplicationApprovals::select('application_id')
+            ->where('approval_id', $employee->id)
+            ->distinct()->pluck('application_id');
+
+        $leave_summary = [];
+
+        $leave_list = LeaveApplications::select(
+            'leave_applications.*',
+            'leave_policies.leave_title',
+            'employee_infos.name as employee_name',
+            'employee_infos.mobile as employee_mobile',
+        )
+        ->leftJoin('leave_policies', 'leave_policies.id', 'leave_applications.leave_policy_id')
+        ->leftJoin('employee_infos', 'employee_infos.id', 'leave_applications.employee_id')
+        ->whereIn('leave_applications.id', $leave_ids)
+        ->orderBy('leave_applications.id', "DESC")
+        ->get();
+
+        $pending_leave_ids = LeaveApplicationApprovals::select('application_id')
+            ->where('approval_id', $employee->id)
+            ->whereIn('step_flag', ['Active'])
+            ->distinct()->pluck('application_id');
+
+        $count_total = $leave_list->count();
+        $count_pending = sizeof($pending_leave_ids);
+        $count_approved= $leave_list->where('leave_status', "Approved")->count();
+        $count_rejected = $leave_list->where('leave_status', "Rejected")->count();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Successful1',
+            'data' => [
+                'count_total' => $count_total, 
+                'count_pending' => $count_pending, 
+                'count_approved' => $count_approved, 
+                'count_rejected' => $count_rejected
+            ]
+        ], 200);
+    }
 }

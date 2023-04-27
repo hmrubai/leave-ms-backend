@@ -127,6 +127,7 @@ Route::middleware('auth:sanctum')->group( function () {
 
     //Dashboard
     Route::get('dashboard-summary', [DashboardController::class, 'dashboardSummary']);
+    Route::get('approval-dashboard-summary', [DashboardController::class, 'getApprovalDashboardSummary']);
     
     //Email Sending
     Route::post('notification/send-email', [NotificationController::class, 'checkEmailSending']);
