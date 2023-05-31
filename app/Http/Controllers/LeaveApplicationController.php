@@ -737,4 +737,71 @@ class LeaveApplicationController extends Controller
             'data' => []
         ], 200);
     }
+
+    public function withdrawLeave(Request $request)
+    {
+        $application_id = $request->leave_application_id ? $request->leave_application_id : 0;
+        $user_id = $request->user()->id;
+
+        if(!$application_id){
+            return response()->json([
+                'status' => false,
+                'message' => 'Please, attach Application ID',
+                'data' => []
+            ], 409);
+        }
+
+        $application = LeaveApplications::where('id', $application_id)->first();
+
+        $leave_approval_step = LeaveApplicationApprovals::where('application_id', $application_id)
+        ->where('approval_status', '!=', 'Pending')->get();
+
+        if(sizeof($leave_approval_step)){
+            return response()->json([
+                'status' => true,
+                'message' => 'You can\'t modify this leave application! Already approved seen by your Supervisor!',
+                'data' => []
+            ], 409);
+        }
+
+        //Withdraw
+        $resolve_approval_step = LeaveApplicationApprovals::where('application_id', $application_id)->get();
+
+        foreach ($resolve_approval_step as $item) {
+            LeaveApplicationApprovals::where('id', $item->id)->update([
+                "step_flag" => "Completed",
+                "approval_status" => "Withdraw"
+            ]);
+        }
+
+        $application->update([
+            "leave_status" => "Withdraw"
+        ]);
+
+        //Update Balance
+        $fiscal_year_id = 0;
+        $check_start_date = Carbon::parse($application->start_date);
+        $is_exist_start = FiscalYear::where('start_date', '<=', $check_start_date)->where('end_date', '>=', $check_start_date)->first();
+
+        if(!is_null($is_exist_start)){
+            if(!is_null($is_exist_start)){
+                $fiscal_year_id = $is_exist_start->id; 
+            }
+        }
+
+        $balance = LeaveBalance::where('employee_id', $application->employee_id)->where('leave_policy_id', $application->leave_policy_id)->where('fiscal_year_id', $fiscal_year_id)->first();
+
+        if(!is_null($balance)){
+            $balance->update([
+                'availed_days' => $balance->availed_days - $application->total_applied_days,
+                'remaining_days' => $balance->remaining_days + $application->total_applied_days
+            ]);
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Leave application has been withdrawn!',
+            'data' => []
+        ], 200);
+    }
 }

@@ -124,6 +124,7 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::get('admin/leave-application-list', [LeaveApplicationController::class, 'getAdminAllLeaveApplications']);
     Route::post('leave/approve-leave', [LeaveApplicationController::class, 'approveLeave']);
     Route::post('leave/reject-leave', [LeaveApplicationController::class, 'rejectLeave']);
+    Route::post('leave/withdraw-leave', [LeaveApplicationController::class, 'withdrawLeave']);
 
     //Dashboard
     Route::get('dashboard-summary', [DashboardController::class, 'dashboardSummary']);
