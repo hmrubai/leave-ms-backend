@@ -63,8 +63,8 @@ class LeaveApplicationController extends Controller
             $is_valid = false;
         }
 
-        $is_exist_start = LeaveApplications::whereBetween('start_date', [$check_start_date, $check_end_date])->where('employee_id', $employee->id)->where('leave_status', '!=', "Rejected")->first();
-        $is_exist_end = LeaveApplications::whereBetween('end_date', [$check_start_date, $check_end_date])->where('employee_id', $employee->id)->where('leave_status', '!=', "Rejected")->first();
+        $is_exist_start = LeaveApplications::whereBetween('start_date', [$check_start_date, $check_end_date])->where('employee_id', $employee->id)->whereNotIn('leave_status', ["Rejected", "Withdraw"])->first();
+        $is_exist_end = LeaveApplications::whereBetween('end_date', [$check_start_date, $check_end_date])->where('employee_id', $employee->id)->whereNotIn('leave_status', ["Rejected", "Withdraw"])->first();
 
         if(!empty($is_exist_start) || !empty($is_exist_end)){
             return response()->json([
@@ -205,8 +205,8 @@ class LeaveApplicationController extends Controller
             $is_valid = false;
         }
 
-        $is_exist_start = LeaveApplications::whereBetween('start_date', [$check_start_date, $check_end_date])->where('employee_id', $employee->id)->where('leave_status', '!=', "Rejected")->first();
-        $is_exist_end = LeaveApplications::whereBetween('end_date', [$check_start_date, $check_end_date])->where('employee_id', $employee->id)->where('leave_status', '!=', "Rejected")->first();
+        $is_exist_start = LeaveApplications::whereBetween('start_date', [$check_start_date, $check_end_date])->where('employee_id', $employee->id)->whereNotIn('leave_status', ["Rejected", "Withdraw"])->first();
+        $is_exist_end = LeaveApplications::whereBetween('end_date', [$check_start_date, $check_end_date])->where('employee_id', $employee->id)->whereNotIn('leave_status', ["Rejected", "Withdraw"])->first();
 
         if(!is_null($is_exist_start) || !is_null($is_exist_end)){
             return response()->json([
