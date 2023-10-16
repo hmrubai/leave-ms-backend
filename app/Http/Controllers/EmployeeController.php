@@ -174,26 +174,16 @@ class EmployeeController extends Controller
         $validateUser = Validator::make($request->all(), 
         [
             'name' => 'required',
-            'father_name' => 'required',
-            'mother_name' => 'required',
             'employee_id' => 'required',
             'email' => 'required',
             'mobile' => 'required',
-            'nid' => 'required',
-            'present_address' => 'required',
-            'permanent_address' => 'required',
-            'date_of_birth' => 'required',
             'joining_date' => 'required',
             'gender' => 'required',
-            'marital_status' => 'required',
             'company_id' => 'required',
             'branch_id' => 'required',
             'department_id' => 'required',
             'employment_type_id' => 'required',
             'designation_id' => 'required',
-            'division_id' => 'required',
-            'district_id' => 'required',
-            'city_id' => 'required',
             'user_type' => 'required'
         ]);
 
@@ -239,9 +229,9 @@ class EmployeeController extends Controller
                 'contact_no' => $request->mobile,
                 'employee_code' => $employee_code,
                 'company_id' => $request->company_id,
-                'address' => $request->present_address,
-                'institution' => $request->institution,
-                'education' => $request->education,
+                'address' => $request->present_address ?? null,
+                'institution' => $request->institution ?? null,
+                'education' => $request->education ?? null,
                 'user_type' => $user_type,
                 'password' => Hash::make('BB@2023')
             ]);
@@ -252,6 +242,13 @@ class EmployeeController extends Controller
                 if(!empty($wing)){
                     $wing_name = $wing->name;
                 }
+            }
+
+            $date_of_birth = null;
+            if($request->date_of_birth == 'null'){
+                $date_of_birth = null;
+            }else{
+                $date_of_birth = $request->date_of_birth;
             }
 
             $employee = EmployeeInfo::create([
@@ -267,7 +264,7 @@ class EmployeeController extends Controller
                 "employee_id" => $request->employee_id,
                 "employee_code" => $employee_code,
                 "nid" => $request->nid,
-                "date_of_birth" => $request->date_of_birth,
+                "date_of_birth" => $date_of_birth,
                 "joining_date" => $request->joining_date,
                 "marital_status" => $request->marital_status,
                 "gender" => $request->gender,
@@ -331,27 +328,17 @@ class EmployeeController extends Controller
     {
         $validateUser = Validator::make($request->all(), 
         [
-            'id' => 'required',
             'name' => 'required',
-            'father_name' => 'required',
-            'mother_name' => 'required',
             'employee_id' => 'required',
+            'email' => 'required',
             'mobile' => 'required',
-            'nid' => 'required',
-            'present_address' => 'required',
-            'permanent_address' => 'required',
-            'date_of_birth' => 'required',
             'joining_date' => 'required',
             'gender' => 'required',
-            'marital_status' => 'required',
             'company_id' => 'required',
             'branch_id' => 'required',
             'department_id' => 'required',
-            'designation_id' => 'required',
             'employment_type_id' => 'required',
-            'division_id' => 'required',
-            'district_id' => 'required',
-            'city_id' => 'required',
+            'designation_id' => 'required',
             'user_type' => 'required'
         ]);
 
@@ -411,6 +398,13 @@ class EmployeeController extends Controller
                 }
             }
 
+            $date_of_birth = null;
+            if($request->date_of_birth == 'null'){
+                $date_of_birth = null;
+            }else{
+                $date_of_birth = $request->date_of_birth;
+            }
+
             EmployeeInfo::where('id', $request->id)->update([
                 "name" => $request->name,
                 "mobile" => $request->mobile,
@@ -422,7 +416,7 @@ class EmployeeController extends Controller
                 "employee_id" => $request->employee_id,
                 "employee_code" => $employee_code,
                 "nid" => $request->nid,
-                "date_of_birth" => $request->date_of_birth,
+                "date_of_birth" => $date_of_birth,
                 "joining_date" => $request->joining_date,
                 "marital_status" => $request->marital_status,
                 "gender" => $request->gender,

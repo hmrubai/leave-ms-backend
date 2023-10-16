@@ -127,6 +127,7 @@ class MasterSettingsController extends Controller
         ->when($branch_id, function ($query) use ($branch_id){
             return $query->where('designations.branch_id', $branch_id);
         })
+        ->where('designations.is_active', true)
         ->leftJoin('companies', 'companies.id', 'designations.company_id')
         ->leftJoin('branches', 'branches.id', 'designations.branch_id')
         ->orderBy('designations.title', 'ASC')
@@ -434,6 +435,7 @@ class MasterSettingsController extends Controller
         ->when($branch_id, function ($query) use ($branch_id){
             return $query->where('wings.branch_id', $branch_id);
         })
+        ->where('wings.is_active', true)
         ->leftJoin('companies', 'companies.id', 'wings.company_id')
         ->leftJoin('branches', 'branches.id', 'wings.branch_id')
         ->orderBy('wings.name', 'ASC')

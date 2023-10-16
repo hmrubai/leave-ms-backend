@@ -165,7 +165,7 @@ class NotificationController extends Controller
                 <td>Appled For:</td>
                 <td><strong>" . "2" . " Days</strong></td>
             </tr>
-        </table><br/> Thanks. <br/>";
+        </table><br/> Thanks. <br/><br/> <strong style='text-align:center;'>Leave Application Link: <a href='http://www.leave.bacbonltd.com' target='_blank'>Leave Management System</a> </strong>";
 
         return $html;
     }
@@ -204,7 +204,7 @@ class NotificationController extends Controller
                 <td>Appled For:</td>
                 <td><strong>" . $body['total_days'] . " Days</strong></td>
             </tr>
-        </table><br/> Thanks. <br/>";
+        </table><br/> Thanks. <br/><br/> <strong style='text-align:center;'>Leave Application Link: <a href='http://www.leave.bacbonltd.com' target='_blank'>Leave Management System</a> </strong>";
 
         return $html;
     }
@@ -243,7 +243,7 @@ class NotificationController extends Controller
                 <td>Appled For:</td>
                 <td><strong>" . $body['total_days'] . " Days</strong></td>
             </tr>
-        </table><br/> Thanks. <br/>";
+        </table><br/> Thanks. <br/><br/> <strong style='text-align:center;'>Leave Application Link: <a href='http://www.leave.bacbonltd.com' target='_blank'>Leave Management System</a> </strong>";
 
         return $html;
     }
@@ -282,7 +282,7 @@ class NotificationController extends Controller
                 <td>Appled For:</td>
                 <td><strong>" . $body['total_days'] . " Days</strong></td>
             </tr>
-        </table><br/> Thanks. <br/>";
+        </table><br/> Thanks. <br/><br/> <strong style='text-align:center;'>Leave Application Link: <a href='http://www.leave.bacbonltd.com' target='_blank'>Leave Management System</a> </strong>";
 
         return $html;
     }
