@@ -1,0 +1,1 @@
+[06-Apr-2023 19:51:35 UTC] PHP Fatal error:  Namespace declaration statement has to be the very first statement or after any declare call in the script in /home/bacbonltd/api-leave.bacbonltd.com/app/Models/User.php on line 3

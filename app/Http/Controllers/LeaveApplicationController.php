@@ -63,6 +63,8 @@ class LeaveApplicationController extends Controller
             $is_valid = false;
         }
 
+        //$is_exist_start = LeaveApplications::whereBetween('start_date', [$check_start_date, $check_end_date])->where('employee_id', $employee->id)->where('leave_status', '!=', "Rejected")->first();
+        //$is_exist_end = LeaveApplications::whereBetween('end_date', [$check_start_date, $check_end_date])->where('employee_id', $employee->id)->where('leave_status', '!=', "Rejected")->first();
         $is_exist_start = LeaveApplications::whereBetween('start_date', [$check_start_date, $check_end_date])->where('employee_id', $employee->id)->whereNotIn('leave_status', ["Rejected", "Withdraw"])->first();
         $is_exist_end = LeaveApplications::whereBetween('end_date', [$check_start_date, $check_end_date])->where('employee_id', $employee->id)->whereNotIn('leave_status', ["Rejected", "Withdraw"])->first();
 
@@ -205,6 +207,9 @@ class LeaveApplicationController extends Controller
             $is_valid = false;
         }
 
+        //$is_exist_start = LeaveApplications::whereBetween('start_date', [$check_start_date, $check_end_date])->where('employee_id', $employee->id)->where('leave_status', '!=', "Rejected")->first();
+        //$is_exist_end = LeaveApplications::whereBetween('end_date', [$check_start_date, $check_end_date])->where('employee_id', $employee->id)->where('leave_status', '!=', "Rejected")->first();
+        
         $is_exist_start = LeaveApplications::whereBetween('start_date', [$check_start_date, $check_end_date])->where('employee_id', $employee->id)->whereNotIn('leave_status', ["Rejected", "Withdraw"])->first();
         $is_exist_end = LeaveApplications::whereBetween('end_date', [$check_start_date, $check_end_date])->where('employee_id', $employee->id)->whereNotIn('leave_status', ["Rejected", "Withdraw"])->first();
 
@@ -405,6 +410,57 @@ class LeaveApplicationController extends Controller
         ->leftJoin('employee_infos', 'employee_infos.id', 'leave_applications.employee_id')
         ->orderBy('id', "DESC")
         ->get();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Successful1',
+            'data' => $leave_list
+        ], 200);
+    }
+
+    public function getAuthorityFilterLeaveApplications(Request $request)
+    {
+        $employee_id = $request->employee_id ? $request->employee_id : 0;
+
+        $check_start_date = $request->start_date ? Carbon::parse($request->start_date) : null;
+        $check_end_date = $request->end_date ? Carbon::parse($request->end_date) : null;
+        //$check_end_date = Carbon::parse($request->end_date);
+
+        $leave_list = [];
+
+        if($check_start_date && $check_end_date){
+            
+            $leave_list = LeaveApplications::select(
+                'leave_applications.*',
+                'leave_policies.leave_title',
+                'employee_infos.name as employee_name',
+                'employee_infos.mobile as employee_mobile',
+            )
+            ->whereBetween('start_date', [$check_start_date, $check_end_date])
+            ->when($employee_id, function ($query) use ($employee_id){
+                return $query->where('leave_applications.employee_id', $employee_id);
+            })
+            ->leftJoin('leave_policies', 'leave_policies.id', 'leave_applications.leave_policy_id')
+            ->leftJoin('employee_infos', 'employee_infos.id', 'leave_applications.employee_id')
+            ->where('leave_applications.leave_status', '!=', 'Withdraw')
+            ->orderBy('id', "DESC")
+            ->get();
+        }else{
+            $leave_list = LeaveApplications::select(
+                'leave_applications.*',
+                'leave_policies.leave_title',
+                'employee_infos.name as employee_name',
+                'employee_infos.mobile as employee_mobile',
+            )
+            ->when($employee_id, function ($query) use ($employee_id){
+                return $query->where('leave_applications.employee_id', $employee_id);
+            })
+            ->leftJoin('leave_policies', 'leave_policies.id', 'leave_applications.leave_policy_id')
+            ->leftJoin('employee_infos', 'employee_infos.id', 'leave_applications.employee_id')
+            ->where('leave_applications.leave_status', '!=', 'Withdraw')
+            ->orderBy('id', "DESC")
+            ->get();
+        }
 
         return response()->json([
             'status' => true,
@@ -737,7 +793,7 @@ class LeaveApplicationController extends Controller
             'data' => []
         ], 200);
     }
-
+    
     public function withdrawLeave(Request $request)
     {
         $application_id = $request->leave_application_id ? $request->leave_application_id : 0;

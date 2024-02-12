@@ -103,6 +103,7 @@ class LeaveBalanceController extends Controller
             ->when($employment_type_id, function ($query) use ($employment_type_id){
                 return $query->where('leave_balance_settings.employment_type_id', $employment_type_id);
             })
+            ->where('leave_policies.is_active', true)
             ->orderBy('leave_policies.leave_title', 'ASC')
             ->get();
 
@@ -157,6 +158,7 @@ class LeaveBalanceController extends Controller
             ->when($fiscal_year_id, function ($query) use ($fiscal_year_id){
                 return $query->where('leave_balances.fiscal_year_id', $fiscal_year_id);
             })
+            ->where('leave_policies.is_active', true)
             ->orderBy('leave_policies.leave_title', 'ASC')
             ->get();
 
@@ -218,6 +220,7 @@ class LeaveBalanceController extends Controller
             ->when($fiscal_year_id, function ($query) use ($fiscal_year_id){
                 return $query->where('leave_balances.fiscal_year_id', $fiscal_year_id);
             })
+            ->where('leave_policies.is_active', true)
             ->orderBy('leave_policies.leave_title', 'ASC')
             ->get();
         
