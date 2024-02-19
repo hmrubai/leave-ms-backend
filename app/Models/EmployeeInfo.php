@@ -32,6 +32,7 @@ class EmployeeInfo extends Model
         'designation_id',
         'wing_id',
         'wing',
+        'is_hsep',
         'employment_type_id',
         'division_id',
         'district_id',

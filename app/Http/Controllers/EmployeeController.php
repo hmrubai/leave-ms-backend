@@ -201,6 +201,12 @@ class EmployeeController extends Controller
             $is_active = true;
         }
 
+        $is_hsep = false;
+
+        if($request->is_hsep == "true"){
+            $is_hsep = true;
+        }
+
         $isExist = EmployeeInfo::where('email', $request->email)->first();
         if (empty($isExist)) 
         {
@@ -282,6 +288,7 @@ class EmployeeController extends Controller
                 "area_id" => $request->area_id,
                 "is_stuckoff" => false,
                 "is_active" => $is_active,
+                "is_hsep" => $is_hsep,
                 "office_contact_number" => $request->office_contact_number,
                 "finger_print_id" => $request->finger_print_id,
                 "personal_alt_contact_number" => $request->personal_alt_contact_number,
@@ -343,9 +350,13 @@ class EmployeeController extends Controller
         ]);
 
         $is_active = false;
-
         if($request->is_active == "true"){
             $is_active = true;
+        }
+
+        $is_hsep = false;
+        if($request->is_hsep == "true"){
+            $is_hsep = true;
         }
 
         if($validateUser->fails()){
@@ -433,6 +444,7 @@ class EmployeeController extends Controller
                 "city_id" => $request->city_id,
                 "area_id" => $request->area_id,
                 "is_active" => $is_active,
+                "is_hsep" => $is_hsep,
                 "office_contact_number" => $request->office_contact_number,
                 "finger_print_id" => $request->finger_print_id,
                 "personal_alt_contact_number" => $request->personal_alt_contact_number,
