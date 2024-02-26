@@ -100,13 +100,15 @@ class LeaveApplicationController extends Controller
         $joining_date = $employee->joining_date->format('Y-m-d');
         $join_days = now()->diffInDays(Carbon::parse($joining_date));
 
-        /*if($leave_policy_id == 3 && $join_days < 365){
-            return response()->json([
-                'status' => false,
-                'message' => 'You are not eligible for this leave! Please, contact to HR department.',
-                'data' => []
-            ], 409);
-        }*/
+        if(!$employee->is_hsep){
+            if($leave_policy_id == 3 && $join_days < 365){
+                return response()->json([
+                    'status' => false,
+                    'message' => 'You are not eligible for this leave! Please, contact to HR department.',
+                    'data' => []
+                ], 409);
+            }
+        }
 
         $leave_flow = LeaveApprovelFlowSetting::select(
             'leave_approvel_flow_settings.*',
@@ -232,13 +234,15 @@ class LeaveApplicationController extends Controller
         $joining_date = $employee->joining_date->format('Y-m-d');
         $join_days = now()->diffInDays(Carbon::parse($joining_date));
 
-        /*if($leave_policy_id == 3 && $join_days < 365){
-            return response()->json([
-                'status' => false,
-                'message' => 'You are not eligible for this leave! Please, contact to HR department.',
-                'data' => []
-            ], 409);
-        }*/
+        if(!$employee->is_hsep){
+            if($leave_policy_id == 3 && $join_days < 365){
+                return response()->json([
+                    'status' => false,
+                    'message' => 'You are not eligible for this leave! Please, contact to HR department.',
+                    'data' => []
+                ], 409);
+            }
+        }
 
         $leave_balances = LeaveBalance::where('employee_id', $employee->id)
             ->where('fiscal_year_id', $fiscal_year->id)

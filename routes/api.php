@@ -89,6 +89,8 @@ Route::middleware('auth:sanctum')->group( function () {
     //Leave Balance Setting
     Route::post('admin/leave-setting-save-or-update', [LeaveBalanceController::class, 'saveOrUpdateLeaveBalanceSetting']);
     Route::get('admin/leave-setting-list/{employment_type_id}', [LeaveBalanceController::class, 'leaveBalanceSettingList']);
+    Route::get('admin/hsep-balance-list', [LeaveBalanceController::class, 'hsepLeaveBalanceList']);
+
     Route::get('admin/leave-balance-list/{employee_id}', [LeaveBalanceController::class, 'employeeLeaveBalanceList']);
     Route::post('admin/leave-balance-update', [LeaveBalanceController::class, 'updateEmployeeLeaveBalance']);
     Route::post('admin/cut-leave-balance', [LeaveBalanceController::class, 'cutEmployeeLeaveBalance']);

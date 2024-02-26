@@ -1,11 +1,10 @@
 <?php
-
 namespace App\Http\Controllers;
-
 
 use Exception;
 use App\Models\User;
 use App\Models\Company;
+use App\Models\HsepBalanceSetting;
 use App\Models\FiscalYear;
 use App\Models\EmployeeInfo;
 use Illuminate\Http\Request;
@@ -503,4 +502,42 @@ class LeaveBalanceController extends Controller
             'data' => []
         ], 200);
     }
+
+    //Hsep Leave Balance List
+    public function hsepLeaveBalanceList(Request $request)
+    {
+        $setting_list = HsepBalanceSetting::select('hsep_balance_settings.*', 'companies.name as company_name', 'leave_policies.leave_title', 'leave_policies.leave_short_code')
+            ->leftJoin('companies', 'companies.id', 'hsep_balance_settings.company_id')
+            ->leftJoin('leave_policies', 'leave_policies.id', 'hsep_balance_settings.leave_policy_id')
+            ->where('leave_policies.is_active', true)
+            ->orderBy('leave_policies.leave_title', 'ASC')
+            ->get();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Successful',
+            'data' => $setting_list
+        ], 200);
+    }
 }
+
+
+// CREATE TABLE `leave_applications` (
+//     `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+//     `employee_id` bigint(20) NOT NULL,
+//     `user_id` bigint(20) NOT NULL,
+//     `leave_policy_id` bigint(20) NOT NULL,
+//     `start_date` date NOT NULL,
+//     `end_date` date NOT NULL,
+//     `total_applied_days` double(8,2) NOT NULL DEFAULT 0.00,
+//     `leave_reason` varchar(255) DEFAULT NULL,
+//     `is_half_day` tinyint(1) NOT NULL DEFAULT 0,
+//     `half_day` enum('Not Applicable','1st Half','2nd Half') NOT NULL DEFAULT 'Not Applicable',
+//     `responsibility_carried_by` varchar(255) DEFAULT NULL,
+//     `rejection_cause` varchar(255) DEFAULT NULL,
+//     `leave_status` enum('Pending','Rejected','Approved','Withdraw') NOT NULL DEFAULT 'Pending',
+//     `created_at` timestamp NULL DEFAULT NULL,
+//     `updated_at` timestamp NULL DEFAULT NULL,
+//     PRIMARY KEY (`id`)
+//   ) ENGINE=InnoDB AUTO_INCREMENT=422 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+  
