@@ -503,21 +503,5 @@ class LeaveBalanceController extends Controller
         ], 200);
     }
 
-    //Hsep Leave Balance List
-    public function hsepLeaveBalanceList(Request $request)
-    {
-        $setting_list = HsepBalanceSetting::select('hsep_balance_settings.*', 'companies.name as company_name', 'leave_policies.leave_title', 'leave_policies.leave_short_code')
-            ->leftJoin('companies', 'companies.id', 'hsep_balance_settings.company_id')
-            ->leftJoin('leave_policies', 'leave_policies.id', 'hsep_balance_settings.leave_policy_id')
-            ->where('leave_policies.is_active', true)
-            ->orderBy('leave_policies.leave_title', 'ASC')
-            ->get();
-
-        return response()->json([
-            'status' => true,
-            'message' => 'Successful',
-            'data' => $setting_list
-        ], 200);
-    }
 }
 
