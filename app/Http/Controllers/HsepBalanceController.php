@@ -69,19 +69,19 @@ class HsepBalanceController extends Controller
                 }
 
                 HsepBalanceAddedHistoryDetail::create([
-                    'hsep_balance_added_history_id' => $hsep_balance_add,
+                    'hsep_balance_added_history_id' => $hsep_balance_add->id,
                     'employee_id' => $employee->id,
                     'user_id' => $employee->user_id,
                     'leave_policy_id' => $policy->id,
                     'added_balances' => $hsep_balance->total_days
                 ]);
 
-                $isBalanceExist = LeaveBalance::where('employee_id', $employee->id)->where('leave_policy_id', $policy->id)->where('fiscal_year_id', $fiscal_year->id)->first();
-                return response()->json([
-                    'status' => true,
-                    'message' => 'Successful',
-                    'data' => $isBalanceExist
-                ], 200);
+                // $isBalanceExist = LeaveBalance::where('employee_id', $employee->id)->where('leave_policy_id', $policy->id)->where('fiscal_year_id', $fiscal_year->id)->first();
+                // return response()->json([
+                //     'status' => true,
+                //     'message' => 'Monthly Balance added successful',
+                //     'data' => $isBalanceExist
+                // ], 200);
             }
         }
 
@@ -89,6 +89,19 @@ class HsepBalanceController extends Controller
             'status' => true,
             'message' => 'Monthly Balance added successful',
             'data' => $employee_list
+        ], 200);
+    }
+
+    public function hsepBalanceHistory(Request $request){
+        $added_list = HsepBalanceAddedHistory::select('hsep_balance_added_histories.*', 'employee_infos.name as user_name')
+            ->leftJoin('employee_infos', 'employee_infos.user_id', 'hsep_balance_added_histories.added_by')
+            ->orderBy('hsep_balance_added_histories.id', 'ASC')
+            ->get();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Successful',
+            'data' => $added_list
         ], 200);
     }
 

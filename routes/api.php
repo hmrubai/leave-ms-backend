@@ -93,7 +93,8 @@ Route::middleware('auth:sanctum')->group( function () {
 
     //Hsep Leave Balance
     Route::get('admin/hsep-balance-list', [HsepBalanceController::class, 'hsepLeaveBalanceList']);
-    Route::get('admin/add-hsep-balance', [HsepBalanceController::class, 'addHsepBalance']);
+    Route::post('admin/add-hsep-balance', [HsepBalanceController::class, 'addHsepBalance']);
+    Route::get('admin/hsep-balance-history', [HsepBalanceController::class, 'hsepBalanceHistory']);
 
     Route::get('admin/leave-balance-list/{employee_id}', [LeaveBalanceController::class, 'employeeLeaveBalanceList']);
     Route::post('admin/leave-balance-update', [LeaveBalanceController::class, 'updateEmployeeLeaveBalance']);
