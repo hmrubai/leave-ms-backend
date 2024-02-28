@@ -27,11 +27,11 @@ class LeaveApplicationController extends Controller
     public function checkLeaveValidity(Request $request)
     {
 
-        return response()->json([
-            'status' => false,
-            'message' => 'Our application may be partially inaccessible & we appreciate your patience during this time!!',
-            'data' => []
-        ], 409);
+        // return response()->json([
+        //     'status' => false,
+        //     'message' => 'Our application may be partially inaccessible & we appreciate your patience during this time!!',
+        //     'data' => []
+        // ], 409);
 
         $validateUser = Validator::make($request->all(), 
         [
@@ -176,11 +176,11 @@ class LeaveApplicationController extends Controller
 
     public function applyForALeave(Request $request)
     {
-        return response()->json([
-            'status' => false,
-            'message' => 'Our application may be partially inaccessible & we appreciate your patience during this time!!',
-            'data' => []
-        ], 409);
+        // return response()->json([
+        //     'status' => false,
+        //     'message' => 'Our application may be partially inaccessible & we appreciate your patience during this time!!',
+        //     'data' => []
+        // ], 409);
 
         $validateUser = Validator::make($request->all(), 
         [
