@@ -162,7 +162,7 @@ class NotificationController extends Controller
                 <td><strong>" . "34/03/2023" . "</strong></td>
             </tr>
             <tr>
-                <td>Appled For:</td>
+                <td>Applied For:</td>
                 <td><strong>" . "2" . " Days</strong></td>
             </tr>
         </table><br/> Thanks. <br/><br/> <strong style='text-align:center;'>Leave Application Link: <a href='http://www.leave.bacbonltd.com' target='_blank'>Leave Management System</a> </strong>";
@@ -201,7 +201,7 @@ class NotificationController extends Controller
                 <td><strong>" . $body['end_date'] . "</strong></td>
             </tr>
             <tr>
-                <td>Appled For:</td>
+                <td>Applied For:</td>
                 <td><strong>" . $body['total_days'] . " Days</strong></td>
             </tr>
         </table><br/> Thanks. <br/><br/> <strong style='text-align:center;'>Leave Application Link: <a href='http://www.leave.bacbonltd.com' target='_blank'>Leave Management System</a> </strong>";
@@ -240,7 +240,7 @@ class NotificationController extends Controller
                 <td><strong>" . $body['end_date'] . "</strong></td>
             </tr>
             <tr>
-                <td>Appled For:</td>
+                <td>Applied For:</td>
                 <td><strong>" . $body['total_days'] . " Days</strong></td>
             </tr>
         </table><br/> Thanks. <br/><br/> <strong style='text-align:center;'>Leave Application Link: <a href='http://www.leave.bacbonltd.com' target='_blank'>Leave Management System</a> </strong>";
@@ -279,7 +279,7 @@ class NotificationController extends Controller
                 <td><strong>" . $body['end_date'] . "</strong></td>
             </tr>
             <tr>
-                <td>Appled For:</td>
+                <td>Applied For:</td>
                 <td><strong>" . $body['total_days'] . " Days</strong></td>
             </tr>
         </table><br/> Thanks. <br/><br/> <strong style='text-align:center;'>Leave Application Link: <a href='http://www.leave.bacbonltd.com' target='_blank'>Leave Management System</a> </strong>";

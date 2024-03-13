@@ -66,6 +66,7 @@ class EmployeeInfo extends Model
         'joining_date' => 'date',
         'stuckoff_date' => 'date',
         'is_stuckoff' => 'boolean',
+        'is_hsep' => 'boolean',
         'is_active' => 'boolean',
     ];
 }
