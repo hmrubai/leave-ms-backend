@@ -102,6 +102,7 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::post('admin/resolved-cutting-leave-balance', [LeaveBalanceController::class, 'resolvedCuttingLeaveBalance']);
     Route::get('my/leave-balance-list', [LeaveBalanceController::class, 'myLeaveBalanceList']);
     Route::post('admin/leave-setting-manually', [LeaveBalanceController::class, 'addLeaveBalanceManually']);
+    Route::get('admin/previous-leave-balance-list', [LeaveBalanceController::class, 'employeePreviousLeaveBalanceList']);    
 
     //Approval Flow Setup
     Route::post('admin/add-approval-flow', [LeaveApprovalFlowSetupController::class, 'addApprovalFlow']);

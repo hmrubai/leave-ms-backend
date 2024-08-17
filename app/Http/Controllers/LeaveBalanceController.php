@@ -173,6 +173,70 @@ class LeaveBalanceController extends Controller
         ], 200);
     }
 
+    public function employeePreviousLeaveBalanceList(Request $request)
+    {
+        $fiscal_year_id = $request->fiscal_year_id ? $request->fiscal_year_id : 0;
+        $employee_id = $request->employee_id ? $request->employee_id : 0;
+
+        if($fiscal_year_id == 0){
+            $fiscal_year = FiscalYear::where('is_active', true)->first();
+            $fiscal_year_id = $fiscal_year->id; 
+        }
+
+        $employee = EmployeeInfo::select(
+            'employee_infos.*', 
+            'designations.title as designation', 
+            'departments.name as department', 
+            'users.image',
+            'users.institution',
+            'users.education',
+            'users.user_type',
+            'companies.name as company_name',
+            'branches.name as branch_name',
+            'divisions.name as division_name',
+            'districts.name as district_name',
+            'upazilas.name as city_name',
+            'unions.name as area_name',
+            'employment_types.type as employment_type'
+        )
+        ->leftJoin('users', 'users.id', 'employee_infos.user_id')
+        ->leftJoin('companies', 'companies.id', 'employee_infos.company_id')
+        ->leftJoin('branches', 'branches.id', 'employee_infos.branch_id')
+        ->leftJoin('employment_types', 'employment_types.id', 'employee_infos.employment_type_id')
+        ->leftJoin('designations', 'designations.id', 'employee_infos.designation_id')
+        ->leftJoin('departments', 'departments.id', 'employee_infos.department_id')
+        ->leftJoin('divisions', 'divisions.id', 'employee_infos.division_id')
+        ->leftJoin('districts', 'districts.id', 'employee_infos.district_id')
+        ->leftJoin('upazilas', 'upazilas.id', 'employee_infos.city_id')
+        ->leftJoin('unions', 'unions.id', 'employee_infos.area_id')
+        ->where('employee_infos.id', $employee_id)
+        ->first();
+
+        $employee->balance_list = LeaveBalance::select('leave_balances.*', 'leave_policies.leave_title', 'leave_policies.leave_short_code')
+            ->leftJoin('fiscal_years', 'fiscal_years.id', 'leave_balances.fiscal_year_id')
+            ->leftJoin('leave_policies', 'leave_policies.id', 'leave_balances.leave_policy_id')
+            ->when($employee_id, function ($query) use ($employee_id){
+                return $query->where('leave_balances.employee_id', $employee_id);
+            })
+            ->when($fiscal_year_id, function ($query) use ($fiscal_year_id){
+                return $query->where('leave_balances.fiscal_year_id', $fiscal_year_id);
+            })
+            ->where('leave_policies.is_active', true)
+            ->orderBy('leave_policies.leave_title', 'ASC')
+            ->get();
+
+        foreach ($employee->balance_list as $item) {
+            $item->cutting_explanation = LeaveCutExplanation::where('leave_balance_id', $item->id)->get();
+            $item->has_cutting_history = LeaveCutExplanation::where('leave_balance_id', $item->id)->get()->count() ? true : false;
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Successful',
+            'data' => $employee
+        ], 200);
+    }
+
     public function myLeaveBalanceList(Request $request)
     {
         $user_id = $request->user()->id;
