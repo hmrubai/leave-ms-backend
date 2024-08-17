@@ -176,11 +176,20 @@ class LeaveBalanceController extends Controller
     public function employeePreviousLeaveBalanceList(Request $request)
     {
         $fiscal_year_id = $request->fiscal_year_id ? $request->fiscal_year_id : 0;
+        $leave_policy_id = $request->leave_policy_id ? $request->leave_policy_id : 0;
         $employee_id = $request->employee_id ? $request->employee_id : 0;
 
         if($fiscal_year_id == 0){
             $fiscal_year = FiscalYear::where('is_active', true)->first();
             $fiscal_year_id = $fiscal_year->id; 
+        }
+
+        if(!$employee_id){
+            return response()->json([
+                'status' => false,
+                'message' => 'Please, attach Employee ID',
+                'data' => []
+            ], 409);
         }
 
         $employee = EmployeeInfo::select(
@@ -220,6 +229,9 @@ class LeaveBalanceController extends Controller
             })
             ->when($fiscal_year_id, function ($query) use ($fiscal_year_id){
                 return $query->where('leave_balances.fiscal_year_id', $fiscal_year_id);
+            })
+            ->when($leave_policy_id, function ($query) use ($leave_policy_id){
+                return $query->where('leave_balances.leave_policy_id', $leave_policy_id);
             })
             ->where('leave_policies.is_active', true)
             ->orderBy('leave_policies.leave_title', 'ASC')
