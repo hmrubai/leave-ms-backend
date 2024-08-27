@@ -249,6 +249,37 @@ class LeaveBalanceController extends Controller
         ], 200);
     }
 
+    public function leaveBalanceUpdate2024(Request $request){
+        $employee = EmployeeInfo::where('is_stuckoff', false)->get();
+        $sl_balance = 9.36;
+        $cl_balance = 6.64;
+        $al_balance = 10;
+        
+        $leave_balance = LeaveBalance::whereIn('leave_policy_id', [1,2])->where('fiscal_year_id', 4)->get();
+
+        foreach($leave_balance as $item){
+            if($item->leave_policy_id == 1){
+                LeaveBalance::where('id', $item->id)->update([
+                    'total_days' => $sl_balance,
+                    'remaining_days' => $sl_balance - $item->availed_days,
+                ]);
+            }
+
+            if($item->leave_policy_id == 2){
+                LeaveBalance::where('id', $item->id)->update([
+                    'total_days' => $cl_balance,
+                    'remaining_days' => $cl_balance - $item->availed_days,
+                ]);
+            }
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Successful',
+            'data' => $leave_balance
+        ], 200);
+    }
+
     public function myLeaveBalanceList(Request $request)
     {
         $user_id = $request->user()->id;
