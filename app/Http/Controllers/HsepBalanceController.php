@@ -49,7 +49,7 @@ class HsepBalanceController extends Controller
             'added_at' => date("Y-m-d H:i:s")
         ]);
 
-        $employee_list = EmployeeInfo::where('is_hsep', 1)->get();
+        $employee_list = EmployeeInfo::where('is_stuckoff', false)->get();
         $fiscal_year = FiscalYear::where('is_active', true)->first();
 
         $leave_policy = LeavePolicy::all();
@@ -60,28 +60,46 @@ class HsepBalanceController extends Controller
 
                 $hsep_balance = HsepBalanceSetting::where('leave_policy_id', $policy->id)->first();
 
-                $isBalanceExist = LeaveBalance::where('employee_id', $employee->id)->where('leave_policy_id', $policy->id)->where('fiscal_year_id', $fiscal_year->id)->first();
-                if($isBalanceExist){
-                    LeaveBalance::where('id', $isBalanceExist->id)->update([
-                        'remaining_days' => $isBalanceExist->remaining_days + $hsep_balance->total_days,
-                        'total_days' => $isBalanceExist->total_days + $hsep_balance->total_days
+                $joining_date = $employee->joining_date->format('Y-m-d');
+                $join_days = now()->diffInDays(Carbon::parse($joining_date));
+
+                // Annual Leave Amount
+                if($policy->id == 3 && $join_days > 365){
+                    $isBalanceExist = LeaveBalance::where('employee_id', $employee->id)->where('leave_policy_id', $policy->id)->where('fiscal_year_id', $fiscal_year->id)->first();
+                    if($isBalanceExist){
+                        LeaveBalance::where('id', $isBalanceExist->id)->update([
+                            'remaining_days' => $isBalanceExist->remaining_days + $hsep_balance->total_days,
+                            'total_days' => $isBalanceExist->total_days + $hsep_balance->total_days
+                        ]);
+                    }
+
+                    HsepBalanceAddedHistoryDetail::create([
+                        'hsep_balance_added_history_id' => $hsep_balance_add->id,
+                        'employee_id' => $employee->id,
+                        'user_id' => $employee->user_id,
+                        'leave_policy_id' => $policy->id,
+                        'added_balances' => $hsep_balance->total_days
                     ]);
                 }
 
-                HsepBalanceAddedHistoryDetail::create([
-                    'hsep_balance_added_history_id' => $hsep_balance_add->id,
-                    'employee_id' => $employee->id,
-                    'user_id' => $employee->user_id,
-                    'leave_policy_id' => $policy->id,
-                    'added_balances' => $hsep_balance->total_days
-                ]);
+                //Others Leave Ammount 
+                if($policy->id != 3){
+                    $isBalanceExist = LeaveBalance::where('employee_id', $employee->id)->where('leave_policy_id', $policy->id)->where('fiscal_year_id', $fiscal_year->id)->first();
+                    if($isBalanceExist){
+                        LeaveBalance::where('id', $isBalanceExist->id)->update([
+                            'remaining_days' => $isBalanceExist->remaining_days + $hsep_balance->total_days,
+                            'total_days' => $isBalanceExist->total_days + $hsep_balance->total_days
+                        ]);
+                    }
 
-                // $isBalanceExist = LeaveBalance::where('employee_id', $employee->id)->where('leave_policy_id', $policy->id)->where('fiscal_year_id', $fiscal_year->id)->first();
-                // return response()->json([
-                //     'status' => true,
-                //     'message' => 'Monthly Balance added successful',
-                //     'data' => $isBalanceExist
-                // ], 200);
+                    HsepBalanceAddedHistoryDetail::create([
+                        'hsep_balance_added_history_id' => $hsep_balance_add->id,
+                        'employee_id' => $employee->id,
+                        'user_id' => $employee->user_id,
+                        'leave_policy_id' => $policy->id,
+                        'added_balances' => $hsep_balance->total_days
+                    ]);
+                }
             }
         }
 
