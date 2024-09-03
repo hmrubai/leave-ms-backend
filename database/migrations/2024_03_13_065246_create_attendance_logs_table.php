@@ -17,10 +17,11 @@ class CreateAttendanceLogsTable extends Migration
             $table->id();
             $table->bigInteger('finger_print_id');
             $table->date('log_date');
-            $table->time('start_time')->format('H:i');
-            $table->time('end_time')->format('H:i');
-            $table->time('total_time')->format('H:i');
-            $table->boolean('is_processed')->default(0);
+            $table->string('punch_log')->nullable();
+            $table->time('start_time')->format('H:i')->nullable();
+            $table->time('end_time')->format('H:i')->nullable();
+            $table->time('total_time')->format('H:i')->nullable();
+            $table->boolean('is_processed')->default(0)->nullable();
             $table->timestamps();
         });
     }

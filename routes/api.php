@@ -16,6 +16,7 @@ use App\Http\Controllers\LeaveApplicationController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HsepBalanceController;
+use App\Http\Controllers\AttendanceLogController;
 
 
 Route::post('/auth/register', [AuthController::class, 'registerUser']);
@@ -148,7 +149,9 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::get('admin/expert-list', [AuthController::class, 'getAdminExpertList']);
     Route::post('admin/save-update-expert', [AuthController::class, 'saveOrUpdateUser']);
     Route::post('delete-account', [AuthController::class, 'deleteUserAccount']);
-    
+
+    //Attendance
+    Route::post('admin/upload-attendance-log', [AttendanceLogController::class, 'uploadPunchLog']);
 });
 
 // Route::get('admin/import-employee', [EmployeeController::class, 'import']);

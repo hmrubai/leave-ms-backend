@@ -26,20 +26,11 @@ class LeaveApplicationController extends Controller
 {
     public function checkLeaveValidity(Request $request)
     {
-
-        // return response()->json([
-        //     'status' => false,
-        //     'message' => 'Our application may be partially inaccessible & we appreciate your patience during this time!!',
-        //     'data' => []
-        // ], 409);
-
         $validateUser = Validator::make($request->all(), 
         [
             'start_date' => 'required',
             'end_date' => 'required',
             'leave_policy_id' => 'required',
-            // 'is_half_day' => 'required',
-            // 'half_day' => 'required'
         ]);
 
         if($validateUser->fails()){
