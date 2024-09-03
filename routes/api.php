@@ -152,6 +152,8 @@ Route::middleware('auth:sanctum')->group( function () {
 
     //Attendance
     Route::post('admin/upload-attendance-log', [AttendanceLogController::class, 'uploadPunchLog']);
+    Route::post('admin/attendance-log', [AttendanceLogController::class, 'getAdminPunchLog']);
+    Route::post('self/attendance-log', [AttendanceLogController::class, 'getSelfPunchLog']);
 });
 
 // Route::get('admin/import-employee', [EmployeeController::class, 'import']);
