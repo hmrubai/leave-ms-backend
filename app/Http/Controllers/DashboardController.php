@@ -31,22 +31,22 @@ class DashboardController extends Controller
         $fiscal_year_id = $fiscal_year->id;
         $employee_id = $employee->id ? $employee->id : 0;
 
-        $employee = EmployeeInfo::select(
-            'employee_infos.*', 
-            'designations.title as designation', 
-            'departments.name as department', 
-            'users.image',
-            'users.institution',
-            'users.education',
-            'users.user_type',
-            'employment_types.type as employment_type'
-        )
-        ->leftJoin('users', 'users.id', 'employee_infos.user_id')
-        ->leftJoin('employment_types', 'employment_types.id', 'employee_infos.employment_type_id')
-        ->leftJoin('designations', 'designations.id', 'employee_infos.designation_id')
-        ->leftJoin('departments', 'departments.id', 'employee_infos.department_id')
-        ->where('employee_infos.id', $employee_id)
-        ->first();
+        // $employee = EmployeeInfo::select(
+        //     'employee_infos.*', 
+        //     'designations.title as designation', 
+        //     'departments.name as department', 
+        //     'users.image',
+        //     'users.institution',
+        //     'users.education',
+        //     'users.user_type',
+        //     'employment_types.type as employment_type'
+        // )
+        // ->leftJoin('users', 'users.id', 'employee_infos.user_id')
+        // ->leftJoin('employment_types', 'employment_types.id', 'employee_infos.employment_type_id')
+        // ->leftJoin('designations', 'designations.id', 'employee_infos.designation_id')
+        // ->leftJoin('departments', 'departments.id', 'employee_infos.department_id')
+        // ->where('employee_infos.id', $employee_id)
+        // ->first();
 
         $employee->balance_list = LeaveBalance::select('leave_balances.*', 'leave_policies.leave_title', 'leave_policies.leave_short_code')
             ->leftJoin('fiscal_years', 'fiscal_years.id', 'leave_balances.fiscal_year_id')
@@ -126,6 +126,7 @@ class DashboardController extends Controller
         $count_pending = sizeof($pending_leave_ids);
         $count_approved= $leave_list->where('leave_status', "Approved")->count();
         $count_rejected = $leave_list->where('leave_status', "Rejected")->count();
+        //$pending_list = $leave_list->where('leave_status', "Pending")->values();
 
         return response()->json([
             'status' => true,
