@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Exception;
 use Carbon\Carbon;
+use Carbon\CarbonInterval;
 use Carbon\CarbonPeriod;
 use App\Models\User;
 use App\Models\AttendanceLog;
@@ -87,17 +88,28 @@ class AttendanceLogController extends Controller
 
         $employee = EmployeeInfo::where('id', $employee_id)->first();
 
-        if(!$employee->finger_print_id){
-            return response()->json([
-                'status' => false,
-                'message' => 'Please, Update Finger Print ID!',
-                'data' => $validateUser->errors()
-            ], 409);
-        }
+        // if(!$employee->finger_print_id){
+        //     return response()->json([
+        //         'status' => false,
+        //         'message' => 'Please, Update Finger Print ID!',
+        //         'data' => $validateUser->errors()
+        //     ], 409);
+        // }
 
         $finger_print_id = $employee->finger_print_id;
 
         if($check_start_date && $check_end_date){
+
+            $startDate = Carbon::parse($check_start_date);
+            $endDate = Carbon::parse($check_end_date);
+
+            $dates = CarbonPeriod::create($startDate, $endDate);
+
+            return response()->json([
+                'status' => false,
+                'message' => 'Please, Print ID!',
+                'data' => $dates
+            ], 409);
             
             $attendance_list = AttendanceLog::select('*')
             ->whereBetween('log_date', [$check_start_date, $check_end_date])
@@ -107,6 +119,18 @@ class AttendanceLogController extends Controller
             ->orderBy('id', "ASC")
             ->get();
 
+            $lateInTime = Carbon::createFromFormat('H:i:s', '09:00:00');
+            $earlyOutTime = Carbon::createFromFormat('H:i:s', '17:00:00');
+
+            if($request->start_grace_time != null){
+                $lateInTime->add(CarbonInterval::createFromFormat('H:i:s', $request->start_grace_time));
+            }
+            
+            if($request->end_grace_time != null){
+                $interval = CarbonInterval::createFromFormat('H:i:s', $request->end_grace_time)->invert();
+                $earlyOutTime->add($interval);
+            }
+
             foreach ($attendance_list as $item) {
                 $startTime = Carbon::createFromFormat('H:i:s', $item->start_time);
                 $end_time = Carbon::createFromFormat('H:i:s', $item->end_time);
@@ -114,8 +138,7 @@ class AttendanceLogController extends Controller
                 $WorkingHour = Carbon::createFromFormat('H:i:s', $item->total_time);
 
                 $thresholdTime = Carbon::createFromFormat('H:i:s', '08:00:00');
-                $lateInTime = Carbon::createFromFormat('H:i:s', '09:00:00');
-                $earlyOutTime = Carbon::createFromFormat('H:i:s', '17:00:00');
+                
 
                 // Total Hours
                 if ($WorkingHour->lessThan($thresholdTime)) {
