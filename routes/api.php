@@ -17,6 +17,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HsepBalanceController;
 use App\Http\Controllers\AttendanceLogController;
+use App\Http\Controllers\NoticeBoardController;
 
 
 Route::post('/auth/register', [AuthController::class, 'registerUser']);
@@ -154,6 +155,11 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::post('admin/upload-attendance-log', [AttendanceLogController::class, 'uploadPunchLog']);
     Route::post('admin/attendance-log', [AttendanceLogController::class, 'getAdminPunchLog']);
     Route::post('self/attendance-log', [AttendanceLogController::class, 'getSelfPunchLog']);
+
+    //Notice Board
+    Route::post('admin/notice-save-or-update', [NoticeBoardController::class, 'saveOrUpdateNotice']);
+    Route::post('admin/notice-delete', [NoticeBoardController::class, 'deleteNotice']);
+    Route::get('admin/notice-list', [NoticeBoardController::class, 'noticeList']);
 });
 
 // Route::get('admin/import-employee', [EmployeeController::class, 'import']);

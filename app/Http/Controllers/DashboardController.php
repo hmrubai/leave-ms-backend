@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Models\DayType;
 use App\Models\Calendar;
 use App\Models\FiscalYear;
+use App\Models\NoticeBoard;
 use App\Models\LeavePolicy;
 use App\Models\LeaveBalance;
 use App\Models\EmployeeInfo;
@@ -30,23 +31,6 @@ class DashboardController extends Controller
         $fiscal_year = FiscalYear::where('is_active', true)->first();
         $fiscal_year_id = $fiscal_year->id;
         $employee_id = $employee->id ? $employee->id : 0;
-
-        // $employee = EmployeeInfo::select(
-        //     'employee_infos.*', 
-        //     'designations.title as designation', 
-        //     'departments.name as department', 
-        //     'users.image',
-        //     'users.institution',
-        //     'users.education',
-        //     'users.user_type',
-        //     'employment_types.type as employment_type'
-        // )
-        // ->leftJoin('users', 'users.id', 'employee_infos.user_id')
-        // ->leftJoin('employment_types', 'employment_types.id', 'employee_infos.employment_type_id')
-        // ->leftJoin('designations', 'designations.id', 'employee_infos.designation_id')
-        // ->leftJoin('departments', 'departments.id', 'employee_infos.department_id')
-        // ->where('employee_infos.id', $employee_id)
-        // ->first();
 
         $employee->balance_list = LeaveBalance::select('leave_balances.*', 'leave_policies.leave_title', 'leave_policies.leave_short_code')
             ->leftJoin('fiscal_years', 'fiscal_years.id', 'leave_balances.fiscal_year_id')
@@ -75,6 +59,8 @@ class DashboardController extends Controller
         $employee->count_pending = $employee->leave_list->where('leave_status', "Pending")->count();
         $employee->count_approved= $employee->leave_list->where('leave_status', "Approved")->count();
         $employee->count_rejected = $employee->leave_list->where('leave_status', "Rejected")->count();
+
+        $employee->notice = NoticeBoard::orderBy('id', "DESC")->get()->take(5);
 
         $employee->weekend_holiday = Calendar::select(
             'calendars.id',
