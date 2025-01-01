@@ -53,16 +53,16 @@ class LeaveApplicationController extends Controller
         $check_end_date = Carbon::parse($request->end_date);
 
         $is_valid = true;
-        if ($check_start_date->gte($fiscal_year_end_date)) { 
+
+        // Skip validation for December 31 of the fiscal year
+        if ($check_start_date->notEqualTo($fiscal_year_end_date) && $check_start_date->gte($fiscal_year_end_date)) { 
             $is_valid = false;
         }
-
-        if ($check_end_date->gte($fiscal_year_end_date)) { 
+        
+        if ($check_end_date->notEqualTo($fiscal_year_end_date) && $check_end_date->gte($fiscal_year_end_date)) { 
             $is_valid = false;
         }
-
-        //$is_exist_start = LeaveApplications::whereBetween('start_date', [$check_start_date, $check_end_date])->where('employee_id', $employee->id)->where('leave_status', '!=', "Rejected")->first();
-        //$is_exist_end = LeaveApplications::whereBetween('end_date', [$check_start_date, $check_end_date])->where('employee_id', $employee->id)->where('leave_status', '!=', "Rejected")->first();
+        
         $is_exist_start = LeaveApplications::whereBetween('start_date', [$check_start_date, $check_end_date])->where('employee_id', $employee->id)->whereNotIn('leave_status', ["Rejected", "Withdraw"])->first();
         $is_exist_end = LeaveApplications::whereBetween('end_date', [$check_start_date, $check_end_date])->where('employee_id', $employee->id)->whereNotIn('leave_status', ["Rejected", "Withdraw"])->first();
 
@@ -205,16 +205,15 @@ class LeaveApplicationController extends Controller
         $check_end_date = Carbon::parse($request->end_date);
 
         $is_valid = true;
-        if ($check_start_date->gte($fiscal_year_end_date)) { 
+
+        // Skip validation for December 31 of the fiscal year
+        if ($check_start_date->notEqualTo($fiscal_year_end_date) && $check_start_date->gte($fiscal_year_end_date)) { 
             $is_valid = false;
         }
-
-        if ($check_end_date->gte($fiscal_year_end_date)) { 
+        
+        if ($check_end_date->notEqualTo($fiscal_year_end_date) && $check_end_date->gte($fiscal_year_end_date)) { 
             $is_valid = false;
         }
-
-        //$is_exist_start = LeaveApplications::whereBetween('start_date', [$check_start_date, $check_end_date])->where('employee_id', $employee->id)->where('leave_status', '!=', "Rejected")->first();
-        //$is_exist_end = LeaveApplications::whereBetween('end_date', [$check_start_date, $check_end_date])->where('employee_id', $employee->id)->where('leave_status', '!=', "Rejected")->first();
         
         $is_exist_start = LeaveApplications::whereBetween('start_date', [$check_start_date, $check_end_date])->where('employee_id', $employee->id)->whereNotIn('leave_status', ["Rejected", "Withdraw"])->first();
         $is_exist_end = LeaveApplications::whereBetween('end_date', [$check_start_date, $check_end_date])->where('employee_id', $employee->id)->whereNotIn('leave_status', ["Rejected", "Withdraw"])->first();

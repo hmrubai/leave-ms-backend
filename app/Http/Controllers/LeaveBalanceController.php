@@ -610,5 +610,115 @@ class LeaveBalanceController extends Controller
         ], 200);
     }
 
+    public function shiftFiscalYear(Request $request){
+        $employees = EmployeeInfo::where('is_stuckoff', false)->get();
+
+        foreach($employees as $employee){
+            $leave_balance = LeaveBalance::where('fiscal_year_id', 4)->where('employee_id', $employee->id)->get();
+
+            foreach($leave_balance as $balance){
+
+                if($balance->leave_policy_id == 3){
+                    LeaveBalance::create([
+                        'employee_id' => $employee->id,
+                        'user_id' => $employee->user_id,
+                        'leave_policy_id' => $balance->leave_policy_id,
+                        'fiscal_year_id' => 5,
+                        'total_days' => $balance->remaining_days,
+                        'availed_days' => 0,
+                        'remaining_days' => $balance->remaining_days,
+                        'carry_forward_balance' => $balance->remaining_days,
+                        'is_active' => true
+                    ]); 
+                }
+                elseif($balance->leave_policy_id == 4){
+                    LeaveBalance::create([
+                        'employee_id' => $employee->id,
+                        'user_id' => $employee->user_id,
+                        'leave_policy_id' => $balance->leave_policy_id,
+                        'fiscal_year_id' => 5,
+                        'total_days' => 120,
+                        'availed_days' => 0,
+                        'remaining_days' => 120,
+                        'carry_forward_balance' => 0,
+                        'is_active' => true
+                    ]); 
+                }
+                elseif($balance->leave_policy_id == 5){
+                    LeaveBalance::create([
+                        'employee_id' => $employee->id,
+                        'user_id' => $employee->user_id,
+                        'leave_policy_id' => $balance->leave_policy_id,
+                        'fiscal_year_id' => 5,
+                        'total_days' => 10,
+                        'availed_days' => 0,
+                        'remaining_days' => 10,
+                        'carry_forward_balance' => 0,
+                        'is_active' => true
+                    ]); 
+                }
+                elseif($balance->leave_policy_id == 6){
+                    LeaveBalance::create([
+                        'employee_id' => $employee->id,
+                        'user_id' => $employee->user_id,
+                        'leave_policy_id' => $balance->leave_policy_id,
+                        'fiscal_year_id' => 5,
+                        'total_days' => 7,
+                        'availed_days' => 0,
+                        'remaining_days' => 7,
+                        'carry_forward_balance' => 0,
+                        'is_active' => true
+                    ]); 
+                }
+                elseif($balance->leave_policy_id == 8){
+                    LeaveBalance::create([
+                        'employee_id' => $employee->id,
+                        'user_id' => $employee->user_id,
+                        'leave_policy_id' => $balance->leave_policy_id,
+                        'fiscal_year_id' => 5,
+                        'total_days' => 7,
+                        'availed_days' => 0,
+                        'remaining_days' => 7,
+                        'carry_forward_balance' => 0,
+                        'is_active' => true
+                    ]); 
+                }
+                elseif($balance->leave_policy_id == 10){
+                    LeaveBalance::create([
+                        'employee_id' => $employee->id,
+                        'user_id' => $employee->user_id,
+                        'leave_policy_id' => $balance->leave_policy_id,
+                        'fiscal_year_id' => 5,
+                        'total_days' => 10,
+                        'availed_days' => 0,
+                        'remaining_days' => 10,
+                        'carry_forward_balance' => 0,
+                        'is_active' => true
+                    ]); 
+                }
+                else{
+                    LeaveBalance::create([
+                        'employee_id' => $employee->id,
+                        'user_id' => $employee->user_id,
+                        'leave_policy_id' => $balance->leave_policy_id,
+                        'fiscal_year_id' => 5,
+                        'total_days' => 0,
+                        'availed_days' => 0,
+                        'remaining_days' => 0,
+                        'carry_forward_balance' => 0,
+                        'is_active' => true
+                    ]); 
+                }
+            }
+
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Leave Balance Forworded Successful',
+            'data' => []
+        ], 200);
+    }
+
 }
 
