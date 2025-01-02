@@ -165,8 +165,8 @@ Route::middleware('auth:sanctum')->group( function () {
 // Route::get('admin/import-employee', [EmployeeController::class, 'import']);
 // Route::post('trancate-data', [MasterSettingsController::class, 'trancateData']);
 
-Route::post('admin/add-leave-balance-manually-for-single-policy', [LeaveBalanceController::class, 'addLeaveBalanceForSingleTypeManually']);
-Route::post('admin/shift-fiscal-year', [LeaveBalanceController::class, 'shiftFiscalYear']);
+// Route::post('admin/add-leave-balance-manually-for-single-policy', [LeaveBalanceController::class, 'addLeaveBalanceForSingleTypeManually']);
+// Route::post('admin/shift-fiscal-year', [LeaveBalanceController::class, 'shiftFiscalYear']);
 
 Route::any('{url}', function(){
     return response()->json([

@@ -33,7 +33,7 @@ class LeaveApplicationController extends Controller
             'leave_policy_id' => 'required',
         ]);
 
-        if($validateUser->fails()){
+        if ($validateUser->fails()) {
             return response()->json([
                 'status' => false,
                 'message' => 'validation error',
@@ -43,54 +43,80 @@ class LeaveApplicationController extends Controller
 
         $user_id = $request->user()->id;
         $leave_policy_id = $request->leave_policy_id;
-        
+
         $employee = EmployeeInfo::where('user_id', $user_id)->first();
         $leave_policy = LeavePolicy::where('id', $leave_policy_id)->first();
-        $fiscal_year = FiscalYear::where('is_active', true)->first();
 
-        $fiscal_year_end_date = Carbon::parse($fiscal_year->end_date);
         $check_start_date = Carbon::parse($request->start_date);
         $check_end_date = Carbon::parse($request->end_date);
 
+        // Find the fiscal year(s) covering the leave application period
+        $fiscal_years = FiscalYear::where(function ($query) use ($check_start_date, $check_end_date) {
+            $query->whereBetween('start_date', [$check_start_date, $check_end_date])
+                ->orWhereBetween('end_date', [$check_start_date, $check_end_date])
+                ->orWhere(function ($query) use ($check_start_date, $check_end_date) {
+                    $query->where('start_date', '<=', $check_start_date)
+                        ->where('end_date', '>=', $check_end_date);
+                });
+        })->get();
+
+        if ($fiscal_years->count() > 1) {
+            return response()->json([
+                'status' => false,
+                'message' => 'You can not apply for a leave spanning multiple Fiscal Years',
+                'data' => []
+            ], 409);
+        }
+
+        $fiscal_year = $fiscal_years->first();
+        $fiscal_year_end_date = Carbon::parse($fiscal_year->end_date);
+
+        // Validation for December 31 of the fiscal year
         $is_valid = true;
-
-        // Skip validation for December 31 of the fiscal year
-        if ($check_start_date->notEqualTo($fiscal_year_end_date) && $check_start_date->gte($fiscal_year_end_date)) { 
+        if (
+            ($check_start_date->notEqualTo($fiscal_year_end_date) && $check_start_date->gte($fiscal_year_end_date)) ||
+            ($check_end_date->notEqualTo($fiscal_year_end_date) && $check_end_date->gte($fiscal_year_end_date))
+        ) {
             $is_valid = false;
         }
-        
-        if ($check_end_date->notEqualTo($fiscal_year_end_date) && $check_end_date->gte($fiscal_year_end_date)) { 
-            $is_valid = false;
-        }
-        
-        $is_exist_start = LeaveApplications::whereBetween('start_date', [$check_start_date, $check_end_date])->where('employee_id', $employee->id)->whereNotIn('leave_status', ["Rejected", "Withdraw"])->first();
-        $is_exist_end = LeaveApplications::whereBetween('end_date', [$check_start_date, $check_end_date])->where('employee_id', $employee->id)->whereNotIn('leave_status', ["Rejected", "Withdraw"])->first();
 
-        if(!empty($is_exist_start) || !empty($is_exist_end)){
+        if (!$is_valid) {
             return response()->json([
                 'status' => false,
-                'message' => 'You apleady sent an application on this date!',
+                'message' => 'You can not apply for a leave beyond the Fiscal Year',
                 'data' => []
             ], 409);
         }
 
-        if(!$is_valid){
+        // Check overlapping leave applications
+        $is_exist_start = LeaveApplications::whereBetween('start_date', [$check_start_date, $check_end_date])
+            ->where('employee_id', $employee->id)
+            ->whereNotIn('leave_status', ["Rejected", "Withdraw"])
+            ->first();
+
+        $is_exist_end = LeaveApplications::whereBetween('end_date', [$check_start_date, $check_end_date])
+            ->where('employee_id', $employee->id)
+            ->whereNotIn('leave_status', ["Rejected", "Withdraw"])
+            ->first();
+
+        if (!empty($is_exist_start) || !empty($is_exist_end)) {
             return response()->json([
                 'status' => false,
-                'message' => 'You can not apply for a leave for the multiple Fiscal Year',
+                'message' => 'You already sent an application on this date!',
                 'data' => []
             ], 409);
         }
 
+        // Fetch the leave balance for the identified fiscal year
         $leave_balances = LeaveBalance::where('employee_id', $employee->id)
             ->where('fiscal_year_id', $fiscal_year->id)
             ->where('leave_policy_id', $leave_policy_id)
             ->first();
 
-        if(empty($leave_balances)){
+        if (empty($leave_balances)) {
             return response()->json([
                 'status' => false,
-                'message' => 'Balance Not Found! Please, contact to HR department.',
+                'message' => 'Balance Not Found! Please, contact the HR department.',
                 'data' => []
             ], 409);
         }
@@ -167,27 +193,20 @@ class LeaveApplicationController extends Controller
 
     public function applyForALeave(Request $request)
     {
-        // return response()->json([
-        //     'status' => false,
-        //     'message' => 'Our application may be partially inaccessible & we appreciate your patience during this time!!',
-        //     'data' => []
-        // ], 409);
-
-        $validateUser = Validator::make($request->all(), 
-        [
+        $validateUser = Validator::make($request->all(), [
             'start_date' => 'required',
             'end_date' => 'required',
-            'leave_policy_id' => 'required'
+            'leave_policy_id' => 'required',
         ]);
-
-        if($validateUser->fails()){
+        
+        if ($validateUser->fails()) {
             return response()->json([
                 'status' => false,
                 'message' => 'validation error',
                 'data' => $validateUser->errors()
             ], 409);
         }
-
+        
         $user_id = $request->user()->id;
         $leave_policy_id = $request->leave_policy_id;
         
@@ -196,66 +215,74 @@ class LeaveApplicationController extends Controller
             ->leftJoin('departments', 'departments.id', 'employee_infos.department_id')
             ->where('employee_infos.user_id', $user_id)
             ->first();
-
+        
         $leave_policy = LeavePolicy::where('id', $leave_policy_id)->first();
-        $fiscal_year = FiscalYear::where('is_active', true)->first();
-
-        $fiscal_year_end_date = Carbon::parse($fiscal_year->end_date);
+        
         $check_start_date = Carbon::parse($request->start_date);
         $check_end_date = Carbon::parse($request->end_date);
-
-        $is_valid = true;
-
-        // Skip validation for December 31 of the fiscal year
-        if ($check_start_date->notEqualTo($fiscal_year_end_date) && $check_start_date->gte($fiscal_year_end_date)) { 
-            $is_valid = false;
-        }
         
-        if ($check_end_date->notEqualTo($fiscal_year_end_date) && $check_end_date->gte($fiscal_year_end_date)) { 
-            $is_valid = false;
-        }
+        // Dynamically find the fiscal year(s) overlapping with the leave period
+        $fiscal_years = FiscalYear::where(function ($query) use ($check_start_date, $check_end_date) {
+            $query->whereBetween('start_date', [$check_start_date, $check_end_date])
+                ->orWhereBetween('end_date', [$check_start_date, $check_end_date])
+                ->orWhere(function ($query) use ($check_start_date, $check_end_date) {
+                    $query->where('start_date', '<=', $check_start_date)
+                        ->where('end_date', '>=', $check_end_date);
+                });
+        })->get();
         
-        $is_exist_start = LeaveApplications::whereBetween('start_date', [$check_start_date, $check_end_date])->where('employee_id', $employee->id)->whereNotIn('leave_status', ["Rejected", "Withdraw"])->first();
-        $is_exist_end = LeaveApplications::whereBetween('end_date', [$check_start_date, $check_end_date])->where('employee_id', $employee->id)->whereNotIn('leave_status', ["Rejected", "Withdraw"])->first();
-
-        if(!is_null($is_exist_start) || !is_null($is_exist_end)){
+        if ($fiscal_years->count() > 1) {
             return response()->json([
                 'status' => false,
-                'message' => 'You apleady sent an application on this date!',
+                'message' => 'You cannot apply for a leave spanning multiple Fiscal Years',
                 'data' => []
             ], 409);
         }
-
-        if(!$is_valid){
+        
+        $fiscal_year = $fiscal_years->first();
+        $fiscal_year_end_date = Carbon::parse($fiscal_year->end_date);
+        
+        // Check for overlapping leave applications
+        $is_exist_start = LeaveApplications::whereBetween('start_date', [$check_start_date, $check_end_date])
+            ->where('employee_id', $employee->id)
+            ->whereNotIn('leave_status', ["Rejected", "Withdraw"])
+            ->first();
+        
+        $is_exist_end = LeaveApplications::whereBetween('end_date', [$check_start_date, $check_end_date])
+            ->where('employee_id', $employee->id)
+            ->whereNotIn('leave_status', ["Rejected", "Withdraw"])
+            ->first();
+        
+        if (!is_null($is_exist_start) || !is_null($is_exist_end)) {
             return response()->json([
                 'status' => false,
-                'message' => 'You can not apply for a leave for the multiple Fiscal Year',
+                'message' => 'You already sent an application on this date!',
                 'data' => []
             ], 409);
         }
-
+        
+        // Validate eligibility for specific leave types
         $joining_date = $employee->joining_date->format('Y-m-d');
         $join_days = now()->diffInDays(Carbon::parse($joining_date));
-
-        if(!$employee->is_hsep){
-            if($leave_policy_id == 3 && $join_days < 365){
-                return response()->json([
-                    'status' => false,
-                    'message' => 'You are not eligible for this leave! Please, contact to HR department.',
-                    'data' => []
-                ], 409);
-            }
+        
+        if (!$employee->is_hsep && $leave_policy_id == 3 && $join_days < 365) {
+            return response()->json([
+                'status' => false,
+                'message' => 'You are not eligible for this leave! Please, contact the HR department.',
+                'data' => []
+            ], 409);
         }
-
+        
+        // Fetch leave balance for the identified fiscal year
         $leave_balances = LeaveBalance::where('employee_id', $employee->id)
             ->where('fiscal_year_id', $fiscal_year->id)
             ->where('leave_policy_id', $leave_policy_id)
             ->first();
-
-        if(is_null($leave_balances)){
+        
+        if (is_null($leave_balances)) {
             return response()->json([
                 'status' => false,
-                'message' => 'Balance Not Found! Please, contact to HR department.',
+                'message' => 'Balance Not Found! Please, contact the HR department.',
                 'data' => []
             ], 409);
         }
@@ -599,11 +626,30 @@ class LeaveApplicationController extends Controller
         ->where('employee_infos.id', $leave_details->employee_id)
         ->first();
 
-        $fiscal_year = FiscalYear::where('is_active', true)->first();
+        //$fiscal_year = FiscalYear::where('is_active', true)->first();
+
+        //Get Balance Details
+        $fiscal_year_id = 0;
+        $check_start_date = Carbon::parse($leave_details->start_date);
+        $check_end_date = Carbon::parse($leave_details->end_date);
+
+        // Find the fiscal year(s) covering the leave application period
+        $fiscal_years = FiscalYear::where(function ($query) use ($check_start_date, $check_end_date) {
+            $query->whereBetween('start_date', [$check_start_date, $check_end_date])
+                ->orWhereBetween('end_date', [$check_start_date, $check_end_date])
+                ->orWhere(function ($query) use ($check_start_date, $check_end_date) {
+                    $query->where('start_date', '<=', $check_start_date)
+                        ->where('end_date', '>=', $check_end_date);
+                });
+        })->get();
+
+        $fiscal_year = $fiscal_years->first();
+        $fiscal_year_id = $fiscal_year->id;
+
         $leave_balances = LeaveBalance::select('leave_balances.*', 'leave_policies.leave_title', 'leave_policies.leave_short_code')
             ->where('leave_balances.employee_id', $leave_details->employee_id)
             ->leftJoin('leave_policies', 'leave_policies.id', 'leave_balances.leave_policy_id')
-            ->where('leave_balances.fiscal_year_id', $fiscal_year->id)
+            ->where('leave_balances.fiscal_year_id', $fiscal_year_id)
             ->get();
         
         foreach ($leave_balances as $item) {
@@ -774,13 +820,20 @@ class LeaveApplicationController extends Controller
 
         $fiscal_year_id = 0;
         $check_start_date = Carbon::parse($application->start_date);
-        $is_exist_start = FiscalYear::where('start_date', '<=', $check_start_date)->where('end_date', '>=', $check_start_date)->first();
+        $check_end_date = Carbon::parse($application->end_date);
 
-        if(!is_null($is_exist_start)){
-            if(!is_null($is_exist_start)){
-                $fiscal_year_id = $is_exist_start->id; 
-            }
-        }
+        // Find the fiscal year(s) covering the leave application period
+        $fiscal_years = FiscalYear::where(function ($query) use ($check_start_date, $check_end_date) {
+            $query->whereBetween('start_date', [$check_start_date, $check_end_date])
+                ->orWhereBetween('end_date', [$check_start_date, $check_end_date])
+                ->orWhere(function ($query) use ($check_start_date, $check_end_date) {
+                    $query->where('start_date', '<=', $check_start_date)
+                        ->where('end_date', '>=', $check_end_date);
+                });
+        })->get();
+
+        $fiscal_year = $fiscal_years->first();
+        $fiscal_year_id = $fiscal_year->id;
 
         $balance = LeaveBalance::where('employee_id', $employee->id)->where('leave_policy_id', $application->leave_policy_id)->where('fiscal_year_id', $fiscal_year_id)->first();
 
@@ -844,13 +897,21 @@ class LeaveApplicationController extends Controller
         //Update Balance
         $fiscal_year_id = 0;
         $check_start_date = Carbon::parse($application->start_date);
-        $is_exist_start = FiscalYear::where('start_date', '<=', $check_start_date)->where('end_date', '>=', $check_start_date)->first();
+        $check_end_date = Carbon::parse($application->end_date);
+        //$is_exist_start = FiscalYear::where('start_date', '<=', $check_start_date)->where('end_date', '>=', $check_start_date)->first();
 
-        if(!is_null($is_exist_start)){
-            if(!is_null($is_exist_start)){
-                $fiscal_year_id = $is_exist_start->id; 
-            }
-        }
+        // Find the fiscal year(s) covering the leave application period
+        $fiscal_years = FiscalYear::where(function ($query) use ($check_start_date, $check_end_date) {
+            $query->whereBetween('start_date', [$check_start_date, $check_end_date])
+                ->orWhereBetween('end_date', [$check_start_date, $check_end_date])
+                ->orWhere(function ($query) use ($check_start_date, $check_end_date) {
+                    $query->where('start_date', '<=', $check_start_date)
+                        ->where('end_date', '>=', $check_end_date);
+                });
+        })->get();
+
+        $fiscal_year = $fiscal_years->first();
+        $fiscal_year_id = $fiscal_year->id; 
 
         $balance = LeaveBalance::where('employee_id', $application->employee_id)->where('leave_policy_id', $application->leave_policy_id)->where('fiscal_year_id', $fiscal_year_id)->first();
 
