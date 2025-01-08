@@ -28,4 +28,10 @@ class LeaveApplications extends Model
         'is_half_day' => 'boolean',
         'is_active' => 'boolean'
     ];
+
+    public function leaveBalance()
+    {
+        return $this->hasOne(LeaveBalance::class, 'leave_policy_id', 'leave_policy_id')
+            ->whereColumn('employee_id', 'employee_id');
+    }
 }

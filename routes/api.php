@@ -18,6 +18,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HsepBalanceController;
 use App\Http\Controllers\AttendanceLogController;
 use App\Http\Controllers\NoticeBoardController;
+use App\Http\Controllers\ReportController;
 
 
 Route::post('/auth/register', [AuthController::class, 'registerUser']);
@@ -160,7 +161,14 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::post('admin/notice-save-or-update', [NoticeBoardController::class, 'saveOrUpdateNotice']);
     Route::post('admin/notice-delete', [NoticeBoardController::class, 'deleteNotice']);
     Route::get('admin/notice-list', [NoticeBoardController::class, 'noticeList']);
+
+    //Report Controller
+    //Route::get('admin/individual-register', [ReportController::class, 'getIndividualLeaveRedister']);
+
 });
+
+//Report Controller
+Route::get('admin/individual-register', [ReportController::class, 'getIndividualLeaveRedister']);
 
 // Route::get('admin/import-employee', [EmployeeController::class, 'import']);
 // Route::post('trancate-data', [MasterSettingsController::class, 'trancateData']);

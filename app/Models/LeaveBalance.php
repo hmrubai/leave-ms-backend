@@ -24,4 +24,9 @@ class LeaveBalance extends Model
     protected $casts = [
         'is_active' => 'boolean'
     ];
+
+    public function leaveApplications()
+    {
+        return $this->hasMany(LeaveApplications::class, 'leave_policy_id', 'leave_policy_id');
+    }
 }
