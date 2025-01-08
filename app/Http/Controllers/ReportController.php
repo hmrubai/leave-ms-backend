@@ -8,6 +8,7 @@ use Carbon\CarbonPeriod;
 use App\Models\User;
 use App\Models\DayType;
 use App\Models\Calendar;
+use App\Models\Department;
 use App\Models\FiscalYear;
 use App\Models\LeavePolicy;
 use App\Models\LeaveBalance;
@@ -74,7 +75,7 @@ class ReportController extends Controller
             ->where('leave_applications.employee_id', $employee_id)
             ->whereBetween('leave_applications.start_date', [$startDate, $endDate])
             ->select('leave_applications.leave_policy_id', 'leave_policies.leave_title')
-            ->selectRaw('SUM(leave_applications.total_applied_days) as total_applied_days, COUNT(*) as total_leave_count')
+            ->selectRaw('CAST(SUM(total_applied_days) AS DECIMAL(10,2)) AS total_applied_days, COUNT(*) as total_leave_count')
             ->selectRaw('SUM(CASE WHEN leave_applications.is_half_day = 1 THEN 1 ELSE 0 END) as half_day_count')
             ->leftJoin('leave_policies', 'leave_policies.id', 'leave_applications.leave_policy_id')
             ->where('leave_applications.leave_status', 'Approved')
@@ -83,7 +84,7 @@ class ReportController extends Controller
 
         // Map the report to include leave balance details
         $report = $report->map(function ($item) {
-            $item->total_applied_days = (int) $item->total_applied_days;
+            $item->total_applied_days = $item->total_applied_days;
             $item->total_leave_count = (int) $item->total_leave_count;
             $item->half_day_count = (int) $item->half_day_count;
 
@@ -157,7 +158,7 @@ class ReportController extends Controller
             ->where('leave_applications.employee_id', $employee_id)
             ->whereBetween('leave_applications.start_date', [$startDate, $endDate])
             ->select('leave_applications.leave_policy_id', 'leave_policies.leave_title', 'leave_policies.leave_short_code')
-            ->selectRaw('SUM(leave_applications.total_applied_days) as total_applied_days, COUNT(*) as total_leave_count')
+            ->selectRaw('CAST(SUM(total_applied_days) AS DECIMAL(10,2)) AS total_applied_days, COUNT(*) as total_leave_count')
             ->selectRaw('SUM(CASE WHEN leave_applications.is_half_day = 1 THEN 1 ELSE 0 END) as half_day_count')
             ->leftJoin('leave_policies', 'leave_policies.id', 'leave_applications.leave_policy_id')
             ->where('leave_applications.leave_status', 'Approved')
@@ -166,7 +167,7 @@ class ReportController extends Controller
 
         // Map the report to include leave balance details
         $report = $report->map(function ($item) {
-            $item->total_applied_days = (int) $item->total_applied_days;
+            $item->total_applied_days = $item->total_applied_days;
             $item->total_leave_count = (int) $item->total_leave_count;
             $item->half_day_count = (int) $item->half_day_count;
 
@@ -185,6 +186,134 @@ class ReportController extends Controller
             'report' => $report,
             'fiscalYear' => $fiscalYear,
             'employee' => $employee,
+        ]);
+    
+        // Step 5: Download PDF
+        return $pdf->download('leave_report.pdf');
+    }
+
+    public function getSummaryLeaveRegister(Request $request)
+    {
+        $validateRequest = Validator::make($request->all(), 
+        [
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+        ]);
+
+        if($validateRequest->fails()){
+            return response()->json([
+                'status' => false,
+                'message' => 'validation error',
+                'data' => $validateRequest->errors()
+            ], 409);
+        }
+
+        $employees = [];
+
+        if($request->department_id){
+            $employees = EmployeeInfo::where('department_id', $request->department_id)->pluck('id');
+        }
+
+        $startDate = $request->start_date;
+        $endDate = $request->end_date;
+
+        // Query to generate the report
+        $report = LeaveApplications::whereBetween('leave_applications.start_date', [$startDate, $endDate])
+            ->select('leave_applications.leave_policy_id', 'leave_policies.leave_title', 'leave_policies.leave_short_code')
+            ->selectRaw('SUM(CAST(total_applied_days AS DECIMAL(10,2))) AS total_applied_days, COUNT(*) AS total_leave_count')
+            ->selectRaw('SUM(CASE WHEN leave_applications.is_half_day = 1 THEN 1 ELSE 0 END) as half_day_count')
+            ->leftJoin('leave_policies', 'leave_policies.id', 'leave_applications.leave_policy_id')
+            ->where('leave_applications.leave_status', 'Approved')
+            ->where('leave_policies.is_active', true)
+            ->when(!empty($employees), function ($query) use ($employees) {
+                $query->whereIn('employee_id', $employees);
+            })
+            ->groupBy('leave_applications.leave_policy_id')
+            ->get();
+
+        // Map the report to include leave balance details
+        $report = $report->map(function ($item) {
+            $item->total_applied_days = $item->total_applied_days;
+            $item->total_leave_count = (int) $item->total_leave_count;
+            $item->half_day_count = (int) $item->half_day_count;
+            return $item;
+        });
+
+        $report->employee_count = $employees ? sizeof($employees) : "ALL";
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Successfull',
+            'data' => $report
+        ], 200);
+    }
+
+    public function downloadSummaryLeaveRegister(Request $request)
+    {
+        $validateRequest = Validator::make($request->all(), 
+        [
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+        ]);
+
+        if($validateRequest->fails()){
+            return response()->json([
+                'status' => false,
+                'message' => 'validation error',
+                'data' => $validateRequest->errors()
+            ], 409);
+        }
+
+        $employees = [];
+        $has_department = false;
+        $department_id = null;
+
+        if($request->department_id == "null"){
+            $department_id = null;
+        }
+        elseif($request->department_id == "0"){
+            $department_id = null;
+        }
+        else{
+            $department_id = $request->department_id;
+            $has_department = true;
+        }
+
+        if($department_id){
+            $employees = EmployeeInfo::where('department_id', $request->department_id)->pluck('id');
+            $department = Department::where('id', $request->department_id)->first();
+        }
+
+        $startDate = $request->start_date;
+        $endDate = $request->end_date;
+
+        // Query to generate the report
+        $report = LeaveApplications::whereBetween('leave_applications.start_date', [$startDate, $endDate])
+            ->select('leave_applications.leave_policy_id', 'leave_policies.leave_title', 'leave_policies.leave_short_code')
+            ->selectRaw('CAST(SUM(total_applied_days) AS DECIMAL(10,2)) AS total_applied_days, COUNT(*) as total_leave_count')
+            ->selectRaw('SUM(CASE WHEN leave_applications.is_half_day = 1 THEN 1 ELSE 0 END) as half_day_count')
+            ->leftJoin('leave_policies', 'leave_policies.id', 'leave_applications.leave_policy_id')
+            ->where('leave_applications.leave_status', 'Approved')
+            ->where('leave_policies.is_active', true)
+            ->when(!empty($employees), function ($query) use ($employees) {
+                $query->whereIn('employee_id', $employees);
+            })
+            ->groupBy('leave_applications.leave_policy_id')
+            ->get();
+
+        // Map the report to include leave balance details
+        $report = $report->map(function ($item) {
+            $item->total_applied_days = $item->total_applied_days;
+            $item->total_leave_count = (int) $item->total_leave_count;
+            $item->half_day_count = (int) $item->half_day_count;
+            return $item;
+        });
+
+        $pdf = Pdf::loadView('reports.summary_register_report', [
+            'report' => $report,
+            'department' => $department ?? null,
+            'has_department' => $has_department,
+            'employee_count' => $employees ? sizeof($employees) : "ALL"
         ]);
     
         // Step 5: Download PDF

@@ -166,6 +166,10 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::post('admin/individual-register', [ReportController::class, 'getIndividualLeaveRedister']);
     Route::post('admin/individual-register/download', [ReportController::class, 'downloadLeaveReportPdf']);
 
+    //Summary Report
+    Route::post('admin/summary-register', [ReportController::class, 'getSummaryLeaveRegister']);
+    Route::post('admin/summary-register/download', [ReportController::class, 'downloadSummaryLeaveRegister']);
+
 });
 
 //Report Controller

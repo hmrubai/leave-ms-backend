@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Individual Report: {{ $employee->name }}, {{ $employee->designation }}</title>
+    <title>Summary Register Report</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -73,11 +73,18 @@
         <p><strong>Address:</strong> House # 13 (8th Floor), Block-C, Main Road, Banasree, Rampura, Dhaka-1219.</p>
         <p><strong>Phone:</strong> 09611900205, +88 02 8396601, <strong>Email:</strong> info@bacbonltd.com</p>
         <br/>
-        <div class="report-title">Individual Report: {{ $employee->name }}, {{ $employee->designation }}</div>
+        <div class="report-title">Summary Register Report</div>
     </div>
     <hr class="custom-hr">
-    <p><strong>Employee Name:</strong> {{ $employee->name }}, {{ $employee->designation }}, {{ $employee->department }}</p>
-    <p><strong>Fiscal Year:</strong> {{ $fiscalYear->fiscal_year }}</p>
+
+    @if ($has_department)
+        <p><strong>Department Name:</strong> {{ $department->name }}</p>
+        <p><strong>Employee Count:</strong> {{ $employee_count }}</p>
+    @endif
+    @if (!$has_department)
+        <p><strong>Employee Count:</strong> {{ $employee_count }}</p>
+    @endif
+
     <p><strong>Date Range:</strong> {{ request()->start_date }} to {{ request()->end_date }}</p>
     <hr class="custom-hr">
     <br/>
@@ -88,9 +95,6 @@
                 <th>Availed Days</th>
                 <th>Application Count</th>
                 <th>Half Day Count</th>
-                <th>Total Balance</th>
-                <th>Remaining</th>
-                <th>Carry Forward</th>
             </tr>
         </thead>
         <tbody>
@@ -100,13 +104,6 @@
                     <td>{{ $item->total_applied_days }}</td>
                     <td>{{ $item->total_leave_count }}</td>
                     <td>{{ $item->half_day_count }}</td>
-                    @if ($item->leave_balance)
-                        <td>{{ $item->leave_balance['total_days'] }}</td>
-                        <td>{{ $item->leave_balance['remaining_days'] }}</td>
-                        <td>{{ $item->leave_balance['carry_forward_balance'] }}</td>
-                    @else
-                        <td colspan="4">No Balance Data</td>
-                    @endif
                 </tr>
             @endforeach
         </tbody>
