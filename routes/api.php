@@ -163,12 +163,13 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::get('admin/notice-list', [NoticeBoardController::class, 'noticeList']);
 
     //Report Controller
-    //Route::get('admin/individual-register', [ReportController::class, 'getIndividualLeaveRedister']);
+    Route::post('admin/individual-register', [ReportController::class, 'getIndividualLeaveRedister']);
+    Route::post('admin/individual-register/download', [ReportController::class, 'downloadLeaveReportPdf']);
 
 });
 
 //Report Controller
-Route::get('admin/individual-register', [ReportController::class, 'getIndividualLeaveRedister']);
+//Route::get('admin/individual-register', [ReportController::class, 'getIndividualLeaveRedister']);
 
 // Route::get('admin/import-employee', [EmployeeController::class, 'import']);
 // Route::post('trancate-data', [MasterSettingsController::class, 'trancateData']);
