@@ -2,6 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Response;
 
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\CalendarController;
@@ -168,6 +169,7 @@ Route::middleware('auth:sanctum')->group( function () {
 
     //Summary Report
     Route::post('admin/summary-register', [ReportController::class, 'getSummaryLeaveRegister']);
+    Route::post('admin/individual-summary-report', [ReportController::class, 'getIndividualSummaryReport']);
     Route::post('admin/summary-register/download', [ReportController::class, 'downloadSummaryLeaveRegister']);
 
 });

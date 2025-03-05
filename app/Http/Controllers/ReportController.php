@@ -320,4 +320,123 @@ class ReportController extends Controller
         return $pdf->download('leave_report.pdf');
     }
 
+    public function getIndividualSummaryReport(Request $request)
+    {
+        $validateRequest = Validator::make($request->all(), 
+        [
+            'department_id' => 'required|integer',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+        ]);
+
+        if($validateRequest->fails()){
+            return response()->json([
+                'status' => false,
+                'message' => 'validation error',
+                'data' => $validateRequest->errors()
+            ], 409);
+        }
+
+        $employees = EmployeeInfo::select('employee_infos.*', 'designations.title as designation', 'wings.name as wing_name', 'departments.name as department', 'users.image', 'users.user_type')
+        ->leftJoin('users', 'users.id', 'employee_infos.user_id')
+        ->leftJoin('designations', 'designations.id', 'employee_infos.designation_id')
+        ->leftJoin('wings', 'wings.id', 'employee_infos.wing_id')
+        ->leftJoin('departments', 'departments.id', 'employee_infos.department_id')
+        // ->where('employee_infos.id', 24)
+        ->where('department_id', $request->department_id)
+        ->where("employee_infos.is_stuckoff", false)
+        ->orderBy('employee_infos.name', 'ASC')
+        ->get();
+
+        $startDate = $request->start_date;
+        $endDate = $request->end_date;
+        // 
+
+        // Step 1: Determine the fiscal_year_id
+        $fiscalYear = FiscalYear::where('start_date', '<=', $startDate)
+            ->where('end_date', '>=', $endDate)
+            ->first();
+
+        if (!$fiscalYear) {
+            return response()->json([
+                'status' => false,
+                'message' => 'No fiscal year has been found for the specified date range.',
+                'data' => []
+            ], 409);
+        }
+
+        $fiscalYearId = $fiscalYear->id;
+
+        $finalLeaveSummaryReport = [];
+
+        foreach ($employees as $employee) {
+            $employee_id = $employee->id;
+
+            $leaveReport = [
+                'employee_name' => $employee->name,
+                'employee_designation' => $employee->designation,
+                'employee_department' => $employee->department,
+                'employee_wing_name' => $employee->wing_name,
+            ];
+
+            $leaveBalances = LeaveBalance::where('employee_id', $employee_id)
+                ->select(
+                    'leave_balances.*',
+                    'leave_policies.leave_title',
+                    'leave_policies.id as leave_policy_id'
+                )
+                ->leftJoin('leave_policies', 'leave_policies.id', '=', 'leave_balances.leave_policy_id')
+                ->where('fiscal_year_id', $fiscalYearId)
+                ->get()
+                ->keyBy('leave_policy_id');
+            
+            $total_consumed = 0;
+            $total_balance = 0;
+
+            foreach ($leaveBalances as $balance) {
+                $key = strtolower(str_replace(' ', '_', $balance->leave_title));
+
+                $collectLeaveData = LeaveApplications::select(
+                        'leave_policies.leave_title',
+                        'leave_applications.leave_policy_id'
+                    )
+                    ->selectRaw('CAST(SUM(total_applied_days) AS DECIMAL(10,2)) AS total_applied_days')
+                    ->selectRaw('SUM(CASE WHEN leave_applications.is_half_day = 1 THEN 0.5 ELSE total_applied_days END) as total_days_consumed')
+                    ->leftJoin('leave_policies', 'leave_policies.id', '=', 'leave_applications.leave_policy_id')
+                    ->where('leave_applications.employee_id', $employee_id)
+                    ->whereBetween('leave_applications.start_date', [$startDate, $endDate])
+                    ->where('leave_applications.leave_status', 'Approved')
+                    ->groupBy('leave_applications.leave_policy_id', 'leave_policies.leave_title')
+                    ->where('leave_applications.leave_policy_id', $balance->leave_policy_id)
+                    ->first();
+
+                    $consumed = 0;
+                    if($collectLeaveData){
+                        $consumed = $collectLeaveData->total_days_consumed;
+                    }
+
+                $leaveReport[$key . '_total'] = $balance->total_days ?? 0;
+                $leaveReport[$key . '_consume'] = $consumed;
+
+                $total_consumed += $consumed;
+                $total_balance += $balance->total_days;
+            }
+
+            $leaveReport['total_balance'] = number_format($total_balance, 2);
+            $leaveReport['total_consume'] = number_format($total_consumed, 2);
+            $percentage_consumed = ($total_balance > 0) ? ($total_consumed/$total_balance) * 100 : 0;
+            $leaveReport['percentage_consumed'] = number_format($percentage_consumed, 2) . "%";
+
+
+            array_push($finalLeaveSummaryReport, $leaveReport);
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Successful',
+            'data' => $finalLeaveSummaryReport
+        ], 200);
+
+    }
+
 }
